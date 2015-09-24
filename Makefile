@@ -2,7 +2,7 @@ SHELL:=/bin/bash
 CC=clang++
 CFLAGS=-O0 -g -c -Wall -pthread -Wno-unused-function -std=c++11
 LDFLAGS=
-SOURCES=conch.cpp
+SOURCES=conch.cpp InterpretCommands.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=conch
 
