@@ -21,7 +21,7 @@ std::string execute_file(const std::string& file_name) {
     return "\"[insert output from file " + file_name  + " here]\"";
 }
 
-std::string execute(const std::string& command, int debug_level, std::unordered_map<std::string, Variable>& localVariables, std::unordered_map<std::string, Variable>& globalVariables) {
+std::string execute(const std::string& command, int debug_level, std::unordered_map<std::string, Variable>& local_variables, std::unordered_map<std::string, Variable>& global_variables) {
     
     std::vector<std::string> command_parts = split_but_preserve_literal_strings(command, ' ');
 
@@ -29,11 +29,19 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
         return execute_file(command.substr(3, command.size()));
     }
     if(command_parts[0] == "set") {
-        localVariables[command_parts[1]] = Variable(command_parts[2]);
+        local_variables[command_parts[1]] = Variable(command_parts[2]);
         return "";
     }
     if(command_parts[0] == "unset") {
-        localVariables.erase(command_parts[1]);
+        local_variables.erase(command_parts[1]);
+        return "";
+    }
+    if(command_parts[0] == "export") {
+        global_variables[command_parts[1]] = Variable(command_parts[2]);
+        return "";
+    }
+    if(command_parts[0] == "unexport") {
+        global_variables.erase(command_parts[1]);
         return "";
     }
     if(command_parts[0] == "echo") {
@@ -44,13 +52,13 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
 
 int main(int argc, const char * argv[]) {
     
-    std::unordered_map<std::string, Variable> localVariables;
-    std::unordered_map<std::string, Variable> globalVariables;
+    std::unordered_map<std::string, Variable> local_variables;
+    std::unordered_map<std::string, Variable> global_variables;
     
-    localVariables["local1"] = Variable("a");
-    globalVariables["global1"] = Variable("b");
-    localVariables["var"] = Variable("a");
-    globalVariables["var"] = Variable("b");
+    local_variables["local1"] = Variable("a");
+    global_variables["global1"] = Variable("b");
+    local_variables["var"] = Variable("a");
+    global_variables["var"] = Variable("b");
     
     while(true) {
         
@@ -62,7 +70,7 @@ int main(int argc, const char * argv[]) {
         
         command = remove_excess_spaces(command);
         
-        std::string command_after_var_substitution = substituteVariableValues(command, localVariables, globalVariables);
+        std::string command_after_var_substitution = substituteVariableValues(command, local_variables, global_variables);
         
         // take care of '-x' flag
         if(command_after_var_substitution.substr(0, 2) == "-x") {
@@ -94,7 +102,7 @@ int main(int argc, const char * argv[]) {
         
         std::string output = "";
         for(int i = 0; i < individual_commands.size(); i++) {
-            output = execute(individual_commands[i] + " " + output, debug_level, localVariables, globalVariables);
+            output = execute(individual_commands[i] + " " + output, debug_level, local_variables, global_variables);
         }
         std::cout << output << "\n";
     }
