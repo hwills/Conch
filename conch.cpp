@@ -16,12 +16,16 @@ std::string readInput() {
 int main (int argc, char* argv[]) {
     std::unordered_map<std::string, Variable> localVariables;
     std::unordered_map<std::string, Variable> globalVariables;
+    localVariables["Morgan"] = Variable("Redding");
+    globalVariables["Hunger"] = Variable("Thurst");
+    localVariables["foo"] = Variable("bar");
+    globalVariables["foo"] = Variable("fuck you");
     while(true) {
         shellPrompt();
         std::string command = readInput();
         std::vector<std::string> args = splitByPipes(command);
         for (auto it = args.begin(); it != args.end(); ++it){
-            std::cout << *it << std::endl;
+            std::cout << substituteVariableValues(*it, globalVariables, localVariables)  << std::endl;
         }
     }
 }
