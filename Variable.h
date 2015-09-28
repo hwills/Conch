@@ -11,7 +11,7 @@
 
 #include <assert.h>
 
-enum VariableType {
+enum Variable_Type {
     var_none,
     var_integer,
     var_string
@@ -48,7 +48,7 @@ struct Variable {
     
     int int_value;
     std::string string_value;
-    VariableType type;
+    Variable_Type type;
 };
 
 #endif /* Variable_h */

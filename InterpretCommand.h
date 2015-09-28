@@ -61,7 +61,7 @@ bool is_numeric(char c) {
 }
 
 // returns 'true' for alphanumeric characters and underscore
-bool isLegalVariableCharacter(char c) {
+bool is_legal_variable_character(char c) {
     if(c < 47) {
         return false;
     }
@@ -152,19 +152,19 @@ std::vector<std::string> split_string(const std::string& txt, const char symbol_
     return rtn;
 }
 
-std::string substituteVariableValues(const std::string& txt, const std::unordered_map<std::string, Variable>& localVariables, const std::unordered_map<std::string, Variable>& globalVariables) {
+std::string substitute_variable_values(const std::string& txt, const std::unordered_map<std::string, Variable>& local_variables, const std::unordered_map<std::string, Variable>& global_variables) {
     std::string rtn = "";
     for(int i = 0; i < txt.size(); i++) {
         if(txt[i] == '$') {
             i++;
             int start = i;
-            while(i < txt.size() && isLegalVariableCharacter(txt[i])) {
+            while(i < txt.size() && is_legal_variable_character(txt[i])) {
                 i++;
             }
-            std::unordered_map<std::string, Variable>::const_iterator it = localVariables.find(txt.substr(start, i - start));
-            if(it == localVariables.end()) {
-                it = globalVariables.find(txt.substr(start, i - start));
-                if(it == globalVariables.end()) {
+            std::unordered_map<std::string, Variable>::const_iterator it = local_variables.find(txt.substr(start, i - start));
+            if(it == local_variables.end()) {
+                it = global_variables.find(txt.substr(start, i - start));
+                if(it == global_variables.end()) {
                     i = start;
                     rtn += '$';
                 }

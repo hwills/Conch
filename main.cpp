@@ -70,7 +70,7 @@ int main(int argc, const char * argv[]) {
         
         command = remove_excess_spaces(command);
         
-        std::string command_after_var_substitution = substituteVariableValues(command, local_variables, global_variables);
+        std::string command_after_var_substitution = substitute_variable_values(command, local_variables, global_variables);
         
         // take care of '-x' flag
         if(command_after_var_substitution.substr(0, 2) == "-x") {
