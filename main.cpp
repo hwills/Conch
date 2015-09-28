@@ -11,14 +11,31 @@
 #include "Variable.h"
 #include "InterpretCommand.h"
 
+#include<sys/types.h>
+#include<signal.h>
+#include <unistd.h>
+
 std::string find_file(const std::string& file_name) {
     // TODO
     return "";
 }
 
-std::string execute_file(const std::string& file_name) {
-    // TODO
-    return "\"[insert output from file " + file_name  + " here]\"";
+std::string execute_file(const char* file_name, char *const *arguments) {
+    
+    /*
+    int pid;
+    if((pid = fork()) == 0) {
+        // child should execute file and listen for interupt command
+        int err = execvp(file_name, arguments);
+        exit(err);
+    }
+    else {
+        int status;
+        int pid2 = waitpid(pid, &status, 0); // wait for child process
+    }
+    */
+    
+    return "\"[insert output from file " + std::string(file_name)  + " here]\"";
 }
 
 std::string execute(const std::string& command, int debug_level, std::unordered_map<std::string, Variable>& local_variables, std::unordered_map<std::string, Variable>& global_variables) {
@@ -26,7 +43,9 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
     std::vector<std::string> command_parts = split_but_preserve_literal_strings(command, ' ');
 
     if(command_parts[0] == "-f") {
-        return execute_file(command.substr(3, command.size()));
+        std::string file_name = command.substr(3, command.size());
+        // TODO: convert 'command_parts' to "char *const *" and replace "nullptr" with it
+        return execute_file(&file_name[0], nullptr);
     }
     if(command_parts[0] == "set") {
         local_variables[command_parts[1]] = Variable(command_parts[2]);
@@ -50,7 +69,20 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
     return "UNKNOWN COMMAND: " + command_parts[0];
 }
 
+void sig_terminate_handle(int sig) {
+    std::cout << "foobar\n";
+}
+
 int main(int argc, const char * argv[]) {
+    
+    // blocks user from quitting program (MUHAHAHAHA)
+    sigset_t newsigset;
+    sigemptyset(&newsigset);
+    sigaddset(&newsigset, SIGTSTP); // ctrl-Z
+    sigaddset(&newsigset, SIGINT);  // ctrl-C
+    if(sigprocmask(SIG_BLOCK, &newsigset, NULL) < 0) {
+        perror("could not block the signal");
+    }
     
     std::unordered_map<std::string, Variable> local_variables;
     std::unordered_map<std::string, Variable> global_variables;
