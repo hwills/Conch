@@ -60,6 +60,15 @@ bool is_numeric(char c) {
     return c < 58;
 }
 
+// Clears the screen
+int clear_screen() {
+    int i;
+    for (i = 0; i < 100; ++i) {
+        std::cout << std::endl;
+    }
+    return 0;
+}
+
 // returns 'true' for alphanumeric characters and underscore
 bool is_legal_variable_character(char c) {
     if(c < 47) {
