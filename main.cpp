@@ -34,6 +34,7 @@ void my_exec(const char* path, char * argv[]) {
 		if(waitpid(pid, NULL, 0) < 0) {
 			// TODO: handle error
 		}
+		// TODO: write actual child output to pipe (with a first character that is not 'k')
 		write(fd[1], "child output", 13);
 		exit(0);
 	}
