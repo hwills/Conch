@@ -15,6 +15,8 @@
 #include<signal.h>
 #include <unistd.h>
 
+std::string current_dir;
+
 std::string find_file(const std::string& file_name) {
     // TODO
     return "";
@@ -66,6 +68,25 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
     if(command_parts[0] == "echo") {
         return command_parts[1];
     }
+    if(command_parts[0] == "exit") {
+        throw 0; //TODO: replace this with an appropriate thrown value for good exiting
+    }
+    if(!access((current_dir+"/"+command_parts[0]).c_str(), X_OK)) { //check if external command
+        //run external command as child process (fork and execv)
+        int pid = fork();
+        if(pid != -1) {
+            char * argv[command_parts.size() - 1];
+            for(int i = 1; i < command_parts.size(); i++) {
+                //argv[i-1] = command_parts[i].c_str();
+            }
+            execv((current_dir+"/"+command_parts[0]).c_str(), argv);
+        }
+        else {
+            throw -1;//TODO: replace this with an appropriate thown value for unable to create fork
+        }
+        //wait for command completion (pass signals as necessecary)
+        return "executing!";
+    }
     return "UNKNOWN COMMAND: " + command_parts[0];
 }
 
@@ -91,6 +112,10 @@ int main(int argc, const char * argv[]) {
     global_variables["global1"] = Variable("b");
     local_variables["var"] = Variable("a");
     global_variables["var"] = Variable("b");
+    
+    //set the current path
+    char buf[256];
+    current_dir = getcwd(buf, 256);
     
     while(true) {
         
@@ -134,7 +159,13 @@ int main(int argc, const char * argv[]) {
         
         std::string output = "";
         for(int i = 0; i < individual_commands.size(); i++) {
-            output = execute(individual_commands[i] + " " + output, debug_level, local_variables, global_variables);
+            try {
+                output = execute(individual_commands[i] + " " + output, debug_level, local_variables, global_variables);
+            } 
+            catch(...) { //TODO: replace this with the appropriate exception handling
+                std::cout << "Goodbye." << "\n";
+                return 0;
+            }
         }
         std::cout << output << "\n";
     }
