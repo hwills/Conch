@@ -1,3 +1,5 @@
 conch
 conch.o
 InterpretCommands.o
+main.o
+*.swp

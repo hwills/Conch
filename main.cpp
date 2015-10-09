@@ -59,6 +59,7 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
     }
     if(command_parts[0] == "export") {
         global_variables[command_parts[1]] = Variable(command_parts[2]);
+        putenv(command_parts[1]+"="+command_parts[2]);
         return "";
     }
     if(command_parts[0] == "unexport") {
@@ -74,7 +75,7 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
     if(!access((current_dir+"/"+command_parts[0]).c_str(), X_OK)) { //check if external command
         //run external command as child process (fork and execv)
         int pid = fork();
-        if(pid != -1) {
+        if(pid == 0) {
             char * argv[command_parts.size() - 1];
             for(int i = 1; i < command_parts.size(); i++) {
                 //argv[i-1] = command_parts[i].c_str();
@@ -82,9 +83,11 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
             execv((current_dir+"/"+command_parts[0]).c_str(), argv);
         }
         else {
-            throw -1;//TODO: replace this with an appropriate thown value for unable to create fork
+            //wait for command completion (pass signals as necessecary)
+            while(0 == kill(pid, 0)) {
+                
+            }
         }
-        //wait for command completion (pass signals as necessecary)
         return "executing!";
     }
     return "UNKNOWN COMMAND: " + command_parts[0];
