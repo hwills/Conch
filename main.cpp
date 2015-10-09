@@ -25,6 +25,10 @@ std::string find_file(const std::string& file_name) {
 	return "";
 }
 
+std::string execute_file(const char* file, char *const *args) {
+	return "[dummy value]";
+}
+
 void my_exec(const char* path, char * argv[]) {
 	int pid;
 	if((pid = fork()) == 0) {
