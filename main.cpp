@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 std::string current_dir;
+bool kill_child = false;
 
 std::string find_file(const std::string& file_name) {
     // TODO
@@ -95,8 +96,8 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
     return "UNKNOWN COMMAND: " + command_parts[0];
 }
 
-void sig_terminate_handle(int sig) {
-    std::cout << "foobar\n";
+void ctrlC_handler(int sig) {
+    kill_child = true;
 }
 
 int main(int argc, const char * argv[]) {
@@ -105,11 +106,12 @@ int main(int argc, const char * argv[]) {
     sigset_t newsigset;
     sigemptyset(&newsigset);
     sigaddset(&newsigset, SIGTSTP); // ctrl-Z
-    sigaddset(&newsigset, SIGINT);  // ctrl-C
+    // sigaddset(&newsigset, SIGINT);  // ctrl-C
     if(sigprocmask(SIG_BLOCK, &newsigset, NULL) < 0) {
         perror("could not block the signal");
     }
-    
+    signal(SIGINT, ctrlC_handler);
+
     std::unordered_map<std::string, std::string> local_variables;
     std::unordered_map<std::string, std::string> global_variables;
     
