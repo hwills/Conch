@@ -25,24 +25,6 @@ std::string find_file(const std::string& file_name) {
 	return "";
 }
 
-std::string execute_file(const char* file_name, char *const *arguments) {
-	
-	/*
-	int pid;
-	if((pid = fork()) == 0) {
-		// child should execute file and listen for interupt command
-		int err = execvp(file_name, arguments);
-		exit(err);
-	}
-	else {
-		int status;
-		int pid2 = waitpid(pid, &status, 0); // wait for child process
-	}
-	*/
-	
-	return "\"[insert output from file " + std::string(file_name)  + " here]\"";
-}
-
 void my_exec(const char* path, char * argv[]) {
 	int pid;
 	if((pid = fork()) == 0) {
