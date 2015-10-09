@@ -2,8 +2,7 @@
 //  main.cpp
 //  ShellFish
 //
-//  Created by Morgan Redding on 9/24/15.
-//  Copyright © 2015 Morgan Redding. All rights reserved.
+//  Created by Morgan Redding, Hunter Wills, Bryan Lamb, Lizzie Halper, and Alex Tran on 10/10/2015.
 //
 
 #include <iostream>
@@ -49,48 +48,56 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
         // TODO: convert 'command_parts' to "char *const *" and replace "nullptr" with it
         return execute_file(&file_name[0], nullptr);
     }
-    if(command_parts[0] == "set") {
+    else if(command_parts[0] == "set") {
         local_variables[command_parts[1]] = Variable(command_parts[2]);
         return "";
     }
-    if(command_parts[0] == "unset") {
+    else if(command_parts[0] == "unset") {
         local_variables.erase(command_parts[1]);
         return "";
     }
-    if(command_parts[0] == "export") {
+    else if(command_parts[0] == "export") {
         global_variables[command_parts[1]] = Variable(command_parts[2]);
-        putenv(command_parts[1]+"="+command_parts[2]);
         return "";
     }
-    if(command_parts[0] == "unexport") {
+    else if(command_parts[0] == "unexport") {
         global_variables.erase(command_parts[1]);
         return "";
     }
-    if(command_parts[0] == "echo") {
+    else if(command_parts[0] == "echo") {
         return command_parts[1];
     }
-    if(command_parts[0] == "exit") {
+    else if(command_parts[0] == "exit") {
         throw 0; //TODO: replace this with an appropriate thrown value for good exiting
     }
-    if(!access((current_dir+"/"+command_parts[0]).c_str(), X_OK)) { //check if external command
+    else if(!access((current_dir+"/"+command_parts[0]).c_str(), X_OK)) { //check if external command
+        if (debug_level >= 1) {
+            std::cout << "DEBUG: Beginning execution of <" << (current_dir+"/"+command_parts[0]).c_str() << ">" << std::endl;
+        }
         //run external command as child process (fork and execv)
         int pid = fork();
         if(pid == 0) {
             char * argv[command_parts.size() - 1];
             for(int i = 1; i < command_parts.size(); i++) {
+                //TODO: get command line args to work
                 //argv[i-1] = command_parts[i].c_str();
             }
             execv((current_dir+"/"+command_parts[0]).c_str(), argv);
         }
         else {
+            if (debug_level >= 1) {
+                std::cout << "DEBUG: Waiting for process <" << pid << "> to complete" << std::endl;
+            }
             //wait for command completion (pass signals as necessecary)
             while(0 == kill(pid, 0)) {
-                
+                //TODO: watch for a signals to send to child
             }
         }
-        return "executing!";
+        return "";
     }
-    return "UNKNOWN COMMAND: " + command_parts[0];
+    else {
+        return "UNKNOWN COMMAND: " + command_parts[0];
+    }
 }
 
 void sig_terminate_handle(int sig) {
