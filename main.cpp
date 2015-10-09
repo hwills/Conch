@@ -60,7 +60,7 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
     else if(command_parts[0] == "export") {
         global_variables[command_parts[1]] = command_parts[2];
         std::unordered_map<std::string, std::string>::iterator i = global_variables.find(command_parts[1]);
-        setenv(&(i->first[0]), &(i->second[0]), 1);
+        setenv(&(i->first[0]), &(i->second[0]), i == global_variables.end() ? 0 : 1);
         return "";
     }
     else if(command_parts[0] == "unexport") {
