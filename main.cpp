@@ -53,6 +53,7 @@ void my_exec(const char* path, char * argv[]) {
 			// TODO: handle error
 		}
 		write(fd[1], "child output", 13);
+		exit(0);
 	}
 }
 
@@ -90,6 +91,9 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
 	else if(command_parts[0] == "exit") {
 		throw 0; //TODO: replace this with an appropriate thrown value for good exiting
 	}
+	else if(command_parts[0] == "") {
+		return "";
+	}
 	else if(!access((current_dir+"/"+command_parts[0]).c_str(), X_OK)) { //check if external command
 		if (debug_level >= 1) {
 			std::cout << "DEBUG: Beginning execution of <" << (current_dir+"/"+command_parts[0]).c_str() << ">" << std::endl;
@@ -116,19 +120,20 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
 
 			close(fd[1]);
 			read(fd[0], read_buffer, sizeof(read_buffer));
-			if(strncmp(read_buffer, "kill_me", 7)) {
-				if (debug_level >= 1) {
-					std::cout << "DEBUG: Trying to kill my child" << std::endl;
-				}
+			if(read_buffer[0] == 'k') {
+				std::cout << "DEBUG: Trying to kill my child" << std::endl;
 				kill(pid, SIGINT);
+			}
+			else {
+				std::cout << "BUFFER:" << read_buffer << std::endl;
 			}
 
 			if (debug_level >= 1) {
 				std::cout << "DEBUG: Waiting for process <" << pid << "> to complete" << std::endl;
 			}
 			//wait for command completion (pass signals as necessecary)
-			// while(0 == kill(pid, 0)) {
-			// 	//TODO: watch for a signals to send to child
+			// while(true) {
+			// 	// TODO: watch for a signals to send to child
 			// }
 		}
 		return "";
@@ -144,7 +149,7 @@ void ctrlC_handler(int sig) {
 }
 
 int main(int argc, const char * argv[]) {
-	
+
 	// blocks user from quitting program (MUHAHAHAHA)
 	sigset_t newsigset;
 	sigemptyset(&newsigset);
