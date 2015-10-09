@@ -8,11 +8,11 @@
 
 #include <iostream>
 #include <string>
-#include "Variable.h"
+#include <stdlib.h>
 #include "InterpretCommand.h"
 
-#include<sys/types.h>
-#include<signal.h>
+#include <sys/types.h>
+#include <signal.h>
 #include <unistd.h>
 
 std::string current_dir;
@@ -40,7 +40,7 @@ std::string execute_file(const char* file_name, char *const *arguments) {
     return "\"[insert output from file " + std::string(file_name)  + " here]\"";
 }
 
-std::string execute(const std::string& command, int debug_level, std::unordered_map<std::string, Variable>& local_variables, std::unordered_map<std::string, Variable>& global_variables) {
+std::string execute(const std::string& command, int debug_level, std::unordered_map<std::string, std::string>& local_variables, std::unordered_map<std::string, std::string>& global_variables) {
     
     std::vector<std::string> command_parts = split_but_preserve_literal_strings(command, ' ');
 
@@ -50,7 +50,7 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
         return execute_file(&file_name[0], nullptr);
     }
     if(command_parts[0] == "set") {
-        local_variables[command_parts[1]] = Variable(command_parts[2]);
+        local_variables[command_parts[1]] = command_parts[2];
         return "";
     }
     if(command_parts[0] == "unset") {
@@ -58,11 +58,13 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
         return "";
     }
     if(command_parts[0] == "export") {
-        global_variables[command_parts[1]] = Variable(command_parts[2]);
-        putenv(command_parts[1]+"="+command_parts[2]);
+        global_variables[command_parts[1]] = command_parts[2];
+        std::unordered_map<std::string, std::string>::iterator i = global_variables.find(command_parts[1]);
+        setenv(&(i->first[0]), &(i->second[0]), 1);
         return "";
     }
     if(command_parts[0] == "unexport") {
+        unsetenv(&command_parts[1][0]);
         global_variables.erase(command_parts[1]);
         return "";
     }
@@ -108,13 +110,15 @@ int main(int argc, const char * argv[]) {
         perror("could not block the signal");
     }
     
-    std::unordered_map<std::string, Variable> local_variables;
-    std::unordered_map<std::string, Variable> global_variables;
+    std::unordered_map<std::string, std::string> local_variables;
+    std::unordered_map<std::string, std::string> global_variables;
     
-    local_variables["local1"] = Variable("a");
-    global_variables["global1"] = Variable("b");
-    local_variables["var"] = Variable("a");
-    global_variables["var"] = Variable("b");
+    // these are dummy variables
+    // TODO: remove from final product
+    local_variables["local1"] = "a";
+    global_variables["global1"] = "b";
+    local_variables["var"] = "a";
+    global_variables["var"] = "b";
     
     //set the current path
     char buf[256];
