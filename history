@@ -71,3 +71,18 @@ $a
 $!
 echo $!
 echo "$!"
+foo !
+ps -aef
+foo !
+ps -aef
+kill 10370
+ps -aef
+foo !
+ps -aef
+kill 10406
+ps -aef
+kill 10405
+ps -aef
+echo $$
+kill 10401
+ps -aef
