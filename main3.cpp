@@ -18,7 +18,71 @@
 #include <signal.h>
 #include <unistd.h>
 #include <vector>
+#include <unordered_map>
 #include "Documentation.h"
+
+
+std::unordered_map<std::string, std::string> local_variables;
+
+
+bool is_legal_variable_character(char c) {
+    if(c < 47) {
+        return false;
+    }
+    if(c < 58) {
+        return true;
+    }
+    if(c < 65) {
+        return false;
+    }
+    if(c < 91) {
+        return true;
+    }
+    if(c == 95) {
+        return true;
+    }
+    if(c < 97) {
+        return false;
+    }
+    if(c < 123) {
+        return true;
+    }
+    return false;
+}
+
+
+std::string substitute_variable_values(const std::string& txt) {
+    std::string rtn = "";
+    for(int i = 0; i < txt.size(); i++) {
+        if(txt[i] == '$') {
+            i++;
+            int start = i;
+            while(i < txt.size() && is_legal_variable_character(txt[i])) {
+                i++;
+            }
+            std::unordered_map<std::string, std::string>::const_iterator it = local_variables.find(txt.substr(start, i - start));
+            if(it == local_variables.end()) {
+                char * var_val = getenv(&txt.substr(start, i - start)[0]);
+                if(var_val == NULL) {
+                    i = start;
+                    rtn += '$';
+                }
+                else {
+                    rtn += var_val;
+                }
+            }
+            else {
+                rtn += it->second;
+            }
+            i--;
+        }
+        else {
+            rtn += txt[i];
+        }
+    }
+    return rtn;
+}
+
 
 // copied shamelessly from http://stackoverflow.com/questions/7281894/how-do-i-chain-stdout-in-one-child-process-to-stdin-in-another-child-in-c/7282296#7282296
 void set_read(int* lpipe) {
@@ -75,24 +139,24 @@ void set_write(int* rpipe) {
 }
 
 void run_internal(const std::vector<std::string> &args) {
+    //TODO: SPIT OUT ERRORS
 	if(args[0] == "set") {
-            //TODO: WRITE THIS COMMAND
-	    //local_variables[command_parts[1]] = command_parts[2];
+	    if (args.size() > 2) {
+                local_variables[args[1]] = args[2];
+            }
 	}
 	else if(args[0] == "unset") {
-            //TODO: WRITE THIS COMMAND
-	    //local_variables.erase(command_parts[1]);
+            if (args.size() > 1) {
+	        local_variables.erase(args[1]);
+            }
 	}
 	else if(args[0] == "export") {
-            //TODO: WRITE THIS COMMAND
-	    //global_variables[command_parts[1]] = command_parts[2];
-	    //std::unordered_map<std::string, std::string>::iterator i = global_variables.find(command_parts[1]);
-	    //setenv(&(i->first[0]), &(i->second[0]), i == global_variables.end() ? 0 : 1);
+            if (args.size() > 2) {
+                setenv(&args[1][0], &args[2][0], getenv(&args[1][0]) == NULL ? 0 : 1);
+            }
 	}
 	else if(args[0] == "unexport") {
-            //TODO: WRITE THIS COMMAND
-	    //unsetenv(&command_parts[1][0]);
-	    //global_variables.erase(command_parts[1]);
+	    unsetenv(&args[1][0]);
 	}
 	else if(args[0] == "echo") {
 	    if (args.size() > 1) {
@@ -111,7 +175,7 @@ void run_internal(const std::vector<std::string> &args) {
             else if (args.size() > 1) {
                 functionHelp(args[1]);
 	    }
-            //TODO: USE MORE FILTER
+            //TODO: USE MORE FILTER and MAKE MANS
 	}
 	else if(args[0] == "exit") {
 	    if (args.size() == 1) {
@@ -120,6 +184,7 @@ void run_internal(const std::vector<std::string> &args) {
             else if (args.size() > 1) {
                 exit(stoi(args[1]));//TODO: TRY
 	    }
+            //TODO: HARD CODE INTO MAIN
 	}
 	else if(args[0] == "dir") {
             std::vector<std::string> result;
@@ -137,7 +202,6 @@ void run_internal(const std::vector<std::string> &args) {
 	}
 	else if(args[0] == "clr") {
             std::cout << "\033[2J\033[1;1H";
-            //TODO: GET RID OF EXTRA LINE
 	}
 	else if(args[0] == "enviorn") {
 	    std::cout << "ENVIORN NOT IMPLEMENTED YET" << std::endl;
@@ -218,6 +282,11 @@ bool is_internal_command(std::string command) {
 }
 
 void execute_command(const std::vector< std::vector<std::string> >& commands) {
+
+        if(commands.size() == 1 && is_internal_command(commands[0][0])) {
+	    run_internal(commands[0]);// run internal command
+            return;
+        }
 
 	int all_my_pipes[commands.size()][2];
 	for(int i = 0; i < commands.size(); i++) {
@@ -330,14 +399,27 @@ int main(int argc, const char * argv[]) {
 	// 	else {
 	// 		debug_level = 0;
 	// 	}
-	while(true) {
+        
+        //TODO: READ IN HISTORY FROM HISTORY FILE
+        //TODO: SET SHELL ENVIORN VARIABLE
+        //TODO: SET PARENT ENVIORN VARIABLE
+        //TODO: BACKGROUND COMMANDS
+        //TODO: SET SPECIAL VARIABLES
+        //TODO: STDIN STDOUT REDIRECTION
+        //TODO: HAVE EXTERNAL COMMANDS CHECK PATH FOR EXECUTABLE
+        //TODO: TERMINAL GENERATED SIGNALS
+        //TODO: DEBUG MODE, EXECUTE FILE MODE, -X mode
+        //TODO: MAN PAGE FOR OUR SHELL
+        //TODO: COMMENTS ( igonore everything after # )
+	
+        while(true) {
 		
 		std::string command;
 		
 		std::cout << "sish >> ";
 		std::getline(std::cin, command);
 		
-		std::string command_after_var_substitution = command;//substitute_variable_values(command, local_variables, global_variables);
+		std::string command_after_var_substitution = substitute_variable_values(command);
 		
 		std::vector<std::string> individual_commands = split_but_preserve_literal_strings(command_after_var_substitution, '|');
 		
