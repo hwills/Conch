@@ -15,3 +15,17 @@ exit 1237
 exit asd
 exit asd
 environ
+history 3
+environ
+export $ test
+echo $
+export ? test
+echo ?
+export foo test
+echo foo
+echo $foo
+echo $$
+echo $?
+ls
+ls
+ls -l

@@ -22,6 +22,7 @@
 #include "Logger.h"
 
 void execute_command(const std::vector< std::vector<std::string> >& commands);
+std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char symbol_to_split_by);
 
 extern char ** environ;
 
@@ -302,6 +303,36 @@ void execute_command(const std::vector< std::vector<std::string> >& commands) {
 	    run_internal(commands[0]);// run internal command
             return;
         }
+                    
+        char buf[256];
+        std::string current_dir = getcwd(buf, 256);
+    
+        //make sure we have access to run all of the commands
+        for (int i = 0; i < commands.size(); ++i) {
+            if (is_internal_command(commands[i][0])) {
+                continue;
+            }
+            else if (!access((current_dir + "/" + commands[i][0]).c_str(), X_OK)) {
+                continue;
+            }
+            else {
+                std::string path_var = "PATH";
+                std::string path = getenv(&path_var[0]);
+		std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
+                bool success = false;
+                for (int j = 0; j < path_components.size(); ++j) {
+                    if (!access((path_components[j] + "/" + commands[i][0]).c_str(), X_OK)) {
+                        success = true;
+                        break;
+                    }
+                }
+                if (!success) {
+                    std::cout << "COMMAND NOT FOUND: " << commands[i][0] << std::endl;
+                    return;
+                }
+            }
+        }
+
 
 	int all_my_pipes[commands.size()][2];
 	for(unsigned int i = 0; i < commands.size(); i++) {
@@ -314,6 +345,9 @@ void execute_command(const std::vector< std::vector<std::string> >& commands) {
 	for(unsigned int i = 0; i < commands.size(); i++) {
 		child_ids[i] = fork();
 		if(child_ids[i] == 0) {
+                    std::string shell = "parent";
+                    std::string shellpath = current_dir + "/sish";
+                    setenv(&shell[0], &shellpath[0], getenv(&shell[0]) == NULL ? 0 : 1);
 			if(i != 0) {
 				set_write(last_pipe);
 			}
@@ -325,7 +359,22 @@ void execute_command(const std::vector< std::vector<std::string> >& commands) {
 				exit(0);
 			}
 			else {
-				execv(&commands[i][0][0], args_conversion(commands[i]));
+                            std::string command = commands[i][0];
+                            if (!access((current_dir + "/" + commands[i][0]).c_str(), X_OK)) {
+                                command = current_dir + "/" + commands[i][0];
+                            }
+                            else {
+                                std::string path_var = "PATH";
+                                std::string path = getenv(&path_var[0]);
+		                std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
+                                for (int j = 0; j < path_components.size(); ++j) {
+                                    if (!access((path_components[j] + "/" + commands[i][0]).c_str(), X_OK)) {
+                                        command = path_components[j] + "/" + commands[i][0];
+                                        break;
+                                    }
+                                }
+                            }
+			    execv(&command[0], args_conversion(commands[i]));
 			}
 		}
 		last_pipe = all_my_pipes[i];
@@ -334,7 +383,6 @@ void execute_command(const std::vector< std::vector<std::string> >& commands) {
 	for(unsigned int i = 0; i < commands.size(); i++) {
 		waitpid(child_ids[i], NULL, 0);
 	}
-	std::cout << "done\n";
 }
 
 // splits a string by a character, ignoring characters between quotes
@@ -415,13 +463,15 @@ int main(int argc, const char * argv[]) {
 	// 		debug_level = 0;
 	// 	}
         
-        //TODO: READ IN HISTORY FROM HISTORY FILE
-        //TODO: SET SHELL ENVIORN VARIABLE
-        //TODO: SET PARENT ENVIORN VARIABLE
+        char buf[256];
+        std::string current_dir = getcwd(buf, 256);
+        std::string shell = "shell";
+        std::string shellpath = current_dir + "/sish";
+        setenv(&shell[0], &shellpath[0], getenv(&shell[0]) == NULL ? 0 : 1);
         //TODO: BACKGROUND COMMANDS
         //TODO: SET SPECIAL VARIABLES
+        //TODO: MAKE ENVIRON WORK WITH NON ALPHA CHARS
         //TODO: STDIN STDOUT REDIRECTION
-        //TODO: HAVE EXTERNAL COMMANDS CHECK PATH FOR EXECUTABLE
         //TODO: TERMINAL GENERATED SIGNALS
         //TODO: DEBUG MODE, EXECUTE FILE MODE, -X mode
         //TODO: MAN PAGE FOR OUR SHELL
