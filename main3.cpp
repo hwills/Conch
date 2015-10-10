@@ -30,31 +30,88 @@ void set_write(int* rpipe) {
 	close(rpipe[1]); // we have a copy already, so close it
 }
 
-void execute_command(const std::vector<std::string>& files) {
+char** args_conversion(std::vector< std::string > args) {
+	if(args.size() == 1) {
+		return nullptr;
+	}
+	char ** formatted_args = new char*[args.size()];
+	for(size_t i = 1; i < args.size(); i++) {
+		// need to copy the strings (so that they're not const)
+		formatted_args[i - 1] = new char[args[i].size() + 1];
+		for(size_t j = 0; j < args[i].size(); j++) {
+			formatted_args[i - 1][j] = args[i][j];
+		}
+		formatted_args[i - 1][args[i].size()] = '\0';
+	}
+	formatted_args[args.size() - 1] = nullptr;
+	return formatted_args;
+}
 
-	int all_my_pipes[files.size()][2];
-	for(int i = 0; i < files.size(); i++) {
+bool is_internal_command(std::string command) {
+	if(command == "clr") {
+		return true;
+	}
+	else if(command == "set" || command == "unset") {
+		return true;
+	}
+	else if(command == "export" || command == "unexport") {
+		return true;
+	}
+	else if(command == "echo" || command == "show") {
+		return true;
+	}
+	else if(command == "help") {
+		return true;
+	}
+	else if(command == "dir" || command == "chdir") {
+		return true;
+	}
+	else if(command == "history" || command == "repeat") {
+		return true;
+	}
+	else if(command == "environ") {
+		return true;
+	}
+	else if(command == "wait" || command == "pause") {
+		return true;
+	}
+	else if(command == "kill") {
+		return true;
+	}
+	return false;
+}
+
+void execute_command(const std::vector< std::vector<std::string> >& commands) {
+
+	int all_my_pipes[commands.size()][2];
+	for(int i = 0; i < commands.size(); i++) {
 		pipe(all_my_pipes[i]);
 	}
-	int child_ids[files.size()];
+	int child_ids[commands.size()];
 
 	int* last_pipe = nullptr;
 
-	for(int i = 0; i < files.size(); i++) {
+	for(int i = 0; i < commands.size(); i++) {
 		child_ids[i] = fork();
 		if(child_ids[i] == 0) {
 			if(i != 0) {
 				set_write(last_pipe);
 			}
-			if(i != files.size() - 1) {
+			if(i != commands.size() - 1) {
 				set_read(all_my_pipes[i]);
 			}
-			execv(&files[i][0], nullptr);
+			if(is_internal_command(commands[i][0])) {
+				// run internal command
+				exit(0);
+			}
+			else {
+				execv(&commands[i][0][0], args_conversion(commands[i]));
+			}
 		}
 		last_pipe = all_my_pipes[i];
 	}
 
-	for(int i = 0; i < files.size(); i++) {
+	for(int i = 0; i < commands.size(); i++) {
 		waitpid(child_ids[i], NULL, 0);
 	}
 	std::cout << "done\n";
@@ -62,9 +119,9 @@ void execute_command(const std::vector<std::string>& files) {
 
 int main(int argc, const char * argv[]) {
 
-	std::vector< std::string > vec;
-	vec.push_back("foo");
-	vec.push_back("foo");
+	std::vector< std::vector< std::string > > vec(2);
+	vec[0].push_back("foo");
+	vec[1].push_back("foo");
 
 	execute_command(vec);
 
