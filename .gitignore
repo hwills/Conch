@@ -2,6 +2,7 @@ conch
 conch.o
 InterpretCommands.o
 Documentation.o
+Logger.o
 main.o
 main3.o
 *.swp
