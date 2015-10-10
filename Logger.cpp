@@ -16,15 +16,13 @@ std::string getLastLine(std::ifstream& in)
     return line;
 }
 
-void repeatCommand() {
+std::string repeatCommand() {
     std::ifstream file("history");
 
-    if (file)
-    {
-
+    if (file) {
         std::string line = getLastLine(file);
-        std::cout << line << '\n';
+        return line;
+    } else {
+    	return "";
     }
-    else
-    std::cout << "Unable to retrieve history of commands.\n";
 }

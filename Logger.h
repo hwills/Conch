@@ -13,6 +13,6 @@
 #include <fstream>
 
 void logCommand(std::string command);
-void repeatCommand();
+std::string repeatCommand();
 
 #endif
