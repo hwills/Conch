@@ -9,6 +9,10 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <sstream>
+#include <fstream>
+#include <queue>
 #include "InterpretCommand.h"
 #include "Documentation.h"
 
@@ -30,6 +34,137 @@ std::string find_file(const std::string& file_name) {
 std::string execute_file(const char* file, char *const *args) {
 	return "[dummy value]";
 }
+
+
+int
+change_dir(std::string current_dir, std::string raw_path, std::string &result)
+{
+  /* Process the given path
+   * This can be empty, sub directory, or full path 
+   */
+
+  std::string path;
+  if (raw_path.size()==0) 
+  {
+    //empty
+    path= current_dir;
+  }
+  else if (raw_path[0] != '/') 
+  {
+    // sub directory
+    path= current_dir+"/"+raw_path;
+  }
+  else 
+  {
+    //full path
+    path= raw_path;
+  }
+
+  DIR *dir;
+  const char * final_path= path.c_str(); 
+  dir = opendir(final_path);
+  if (dir) 
+  {
+    closedir(dir);
+    result= path;
+    return 0;
+  }
+
+  return 1;
+}
+
+int
+list_files(std::string current_dir, std::string raw_path, std::vector<std::string> &result)
+{
+  /* Process the given path
+   * This can be empty, sub directory, or full path 
+   */
+
+  std::string path;
+  if (raw_path.size()==0) 
+  {
+    //empty
+    path= current_dir;
+  }
+  else if (raw_path[0] != '/') 
+  {
+    // sub directory
+    path= current_dir+"/"+raw_path;
+  }
+  else 
+  {
+    //full path
+    path= raw_path;
+  }
+
+  DIR *dir;
+  struct dirent *ent;
+  const char * final_path= path.c_str(); 
+  dir = opendir(final_path);
+  if (dir) 
+  {
+    while ((ent = readdir(dir)) != NULL) 
+    {
+      result.push_back(ent->d_name);
+      /* cout << ent->d_name << endl; */ 
+    }
+    closedir(dir);
+    return 0;
+  }
+  
+  return 1;
+}
+
+int 
+add_to_history(std::string command, std::deque<std::string> &history)
+{
+  int max_command=3;
+  int current_size= history.size();
+  while (current_size >=max_command) 
+  {
+    history.pop_front();
+    current_size--;
+  }
+  history.push_back(command);
+  return 0;
+}
+
+int 
+find_file(std::string current_dir, std::string target, std::string &result) 
+{
+  //Check if the target file is in current directory
+  std::vector<std::string> files_in_current_dir;
+  list_files(current_dir, "", files_in_current_dir);
+  for (int i=0; i< files_in_current_dir.size(); i++)
+  {
+    if (target.compare(files_in_current_dir[i])==0)
+    {
+      result= current_dir+"/"+target;
+      return 0;
+    }
+  }
+
+  //Check if the target file is in the evn PATH
+  std::string path(getenv("PATH"));
+  std::istringstream iss(path);
+  std::string single_path;
+  while (getline(iss, single_path, ':'))
+  {
+    std::vector<std::string> files_in_single_path;
+    list_files(single_path, "", files_in_single_path);
+    for (int i=0; i< files_in_single_path.size(); i++)
+    {
+      if (target.compare(files_in_single_path[i])==0)
+      {
+        result= single_path+"/"+target;
+        return 0;
+      }
+    }
+  }
+
+  return 1;
+}
+
 
 void my_exec(const char* path, char * argv[]) {
 	int pid;
@@ -78,20 +213,69 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
 	else if(command_parts[0] == "echo") {
 		return command_parts[1];
 	}
+	else if(command_parts[0] == "show") {
+		return command_parts[1];
+	}
 	else if(command_parts[0] == "help") {
 		if (command_size == 1) {
 			return printHelp();
 		} else {
 			return functionHelp(command_parts[1]);
 		}
+                //TODO: USE MORE FILTER
 	}
 	else if(command_parts[0] == "exit") {
-		throw 0; //TODO: replace this with an appropriate thrown value for good exiting
+		throw 0; //TODO: make this return the value passed to exit
+	}
+	else if(command_parts[0] == "dir") {
+            std::vector<std::string> result;
+            list_files(".", "", result);
+            std::string to_return = "";
+            for (int i=0; i< result.size(); i++)
+            {
+                to_return += result[i] + " ";
+            }
+	    return to_return;
+            //TODO: MAYBE WE DONT WANT TO SHOW THINGS THAT START WITH . like .git
+	}
+	else if(command_parts[0] == "history") {
+		return "HISTORY IS NOT YET IMPLEMENTED";
+                //TODO: FIX ALEX's CODE TO USE A FILE
+	}
+	else if(command_parts[0] == "clr") {
+            std::cout << "\033[2J\033[1;1H";
+	    return "";
+            //TODO: GET RID OF EXTRA LINE
+	}
+	else if(command_parts[0] == "enviorn") {
+		return "ENVIORN NOT IMPLEMENTED YET";
+                //TODO: FINISH THIS
+	}
+	else if(command_parts[0] == "chdir") {
+		return "CHDIR IS NOT IMPLEMENTED YET";
+                //TODO: FINISH THIS (ALEX's CODE MAY WORK?)
+	}
+	else if(command_parts[0] == "wait") {
+		return "WAIT NOT IMPLEMENTED YET";
+                //TODO: FINISH THIS
+	}
+	else if(command_parts[0] == "pause") {
+		return "PAUSE IS NOT IMPLEMENTED YET";
+                //TODO: FINISH THIS
+	}
+	else if(command_parts[0] == "repeat") {
+		return "REPEAT IS NOT IMPLEMENTED YET";
+                //TODO: FINISH THIS (ALEX's CODE NEEDS TO USE A FILE)
+	}
+	else if(command_parts[0] == "kill") {
+		return "KILL IS NOT IMPLEMENTED YET";
+                //TODO: FINISH THIS
 	}
 	else if(command_parts[0] == "") {
 		return "";
 	}
 	else if(!access((current_dir+"/"+command_parts[0]).c_str(), X_OK)) { //check if external command
+            //TODO: USE PATH VARIABLE TO MAKE FIND COMMANDS
 		if (debug_level >= 1) {
 			std::cout << "DEBUG: Beginning execution of <" << (current_dir+"/"+command_parts[0]).c_str() << ">" << std::endl;
 		}
@@ -170,7 +354,17 @@ int main(int argc, const char * argv[]) {
 	//set the current path
 	char buf[256];
 	current_dir = getcwd(buf, 256);
-	
+
+        //TODO: READ IN HISTORY FROM HISTORY FILE
+        //TODO: SET SHELL ENVIORN VARIABLE
+        //TODO: SET PARENT ENVIORN VARIABLE
+        //TODO: BACKGROUND COMMANDS
+        //TODO: SET SPECIAL VARIABLES
+        //TODO: STDIN STDOUT REDIRECTION
+        //TODO: FINISH PIPES AND EXTERNAL COMMANDS
+        //TODO: TERMINAL GENERATED SIGNALS
+
+
 	while(true) {
 		
 		int debug_level;
@@ -216,9 +410,9 @@ int main(int argc, const char * argv[]) {
 			try {
 				output = execute(individual_commands[i] + " " + output, debug_level, local_variables, global_variables);
 			} 
-			catch(...) { //TODO: replace this with the appropriate exception handling
+			catch(int i) { //TODO: replace this with the appropriate exception handling
 				std::cout << "Goodbye." << "\n";
-				return 0;
+				return i;
 			}
 		}
 		std::cout << output << "\n";
