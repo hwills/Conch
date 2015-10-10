@@ -58,6 +58,9 @@ bool is_legal_variable_character(char c) {
 std::string substitute_variable_values(const std::string& txt) {
     std::string rtn = "";
     for(int i = 0; i < txt.size(); i++) {
+        if(txt[i] == '#') {
+            break;
+        }
         if(txt[i] == '$') {
             i++;
             int start = i;
@@ -475,7 +478,6 @@ int main(int argc, const char * argv[]) {
         //TODO: TERMINAL GENERATED SIGNALS
         //TODO: DEBUG MODE, EXECUTE FILE MODE, -X mode
         //TODO: MAN PAGE FOR OUR SHELL
-        //TODO: COMMENTS ( igonore everything after # )
 	
         while(true) {
 		
