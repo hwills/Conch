@@ -10,9 +10,10 @@
 #define LOGGER_H
 #include <string.h>
 #include <iostream>
+#include <vector>
 #include <fstream>
 
 void logCommand(std::string command);
 std::string repeatCommand();
-
+void commandHistory(int n);
 #endif

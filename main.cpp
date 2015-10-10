@@ -135,7 +135,7 @@ find_file(std::string current_dir, std::string target, std::string &result)
   //Check if the target file is in current directory
   std::vector<std::string> files_in_current_dir;
   list_files(current_dir, "", files_in_current_dir);
-  for (int i=0; i< files_in_current_dir.size(); i++)
+  for (unsigned int i=0; i< files_in_current_dir.size(); i++)
   {
     if (target.compare(files_in_current_dir[i])==0)
     {
@@ -152,7 +152,7 @@ find_file(std::string current_dir, std::string target, std::string &result)
   {
     std::vector<std::string> files_in_single_path;
     list_files(single_path, "", files_in_single_path);
-    for (int i=0; i< files_in_single_path.size(); i++)
+    for (unsigned int i=0; i< files_in_single_path.size(); i++)
     {
       if (target.compare(files_in_single_path[i])==0)
       {
@@ -231,7 +231,7 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
             std::vector<std::string> result;
             list_files(".", "", result);
             std::string to_return = "";
-            for (int i=0; i< result.size(); i++)
+            for (unsigned int i=0; i< result.size(); i++)
             {
                 to_return += result[i] + " ";
             }
@@ -277,7 +277,7 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
 	else { //check if external command
             //USE PATH VARIABLE TO MAKE FIND COMMANDS
             /*std::vector<std::string> paths;
-            for (int i = 0; i < paths.length(); ++i) {
+            for (unsigned int i = 0; i < paths.length(); ++i) {
                 if(!access((paths[i]+"/"+command_parts[0]).c_str(), X_OK)) {
                     exec_external(paths[i]+"/"+command_parts[0]);
                     return "OUTPUT OF EXTRNAL COMMANDS";//TODO: get this
@@ -304,7 +304,7 @@ std::string exec_external(std::string path_to_command) {
     if(pid == 0) {
         close(fd[0]); // child closes input side of pipe
         char * argv[command_parts.size() - 1];
-        for(int i = 1; i < command_parts.size(); i++) {
+        for(unsigned int i = 1; i < command_parts.size(); i++) {
                 //TODO: get command line args to work
                 //argv[i-1] = command_parts[i].c_str();
         }
@@ -393,7 +393,7 @@ int main(int argc, const char * argv[]) {
 		
 		// take care of '-d' flag (debug level)
 		if(command_after_var_substitution.substr(0, 2) == "-d") {
-			int i = 3;
+			unsigned int i = 3;
 			while(i < command_after_var_substitution.size() && is_numeric(command_after_var_substitution[i])) {
 				i++;
 			}
@@ -414,7 +414,7 @@ int main(int argc, const char * argv[]) {
 		std::vector<std::string> individual_commands = split_string(command_after_var_substitution, '|');
 		
 		std::string output = "";
-		for(int i = 0; i < individual_commands.size(); i++) {
+		for(unsigned int i = 0; i < individual_commands.size(); i++) {
 			try {
 				output = execute(individual_commands[i] + " " + output, debug_level, local_variables, global_variables);
 			} 

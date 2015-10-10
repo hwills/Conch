@@ -218,9 +218,8 @@ void run_internal(const std::vector<std::string> &args) {
             //TODO: FINISH THIS
 	}
 	else if(args[0] == "pause") {
-	    std::cout << "PAUSE IS NOT IMPLEMENTED YET" << std::endl;
-            //TODO: FINISH THIS
-        }
+	    std::cin.ignore();
+    }
 	else if(args[0] == "repeat") {
 			std::string lastCommand = repeatCommand();
 			std::vector<std::string> _args;
