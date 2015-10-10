@@ -9,7 +9,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -19,6 +18,9 @@
 #include <unistd.h>
 #include <vector>
 #include "Documentation.h"
+#include "Logger.h"
+
+void execute_command(const std::vector< std::vector<std::string> >& commands);
 
 // copied shamelessly from http://stackoverflow.com/questions/7281894/how-do-i-chain-stdout-in-one-child-process-to-stdin-in-another-child-in-c/7282296#7282296
 void set_read(int* lpipe) {
@@ -76,8 +78,7 @@ void set_write(int* rpipe) {
 
 void run_internal(const std::vector<std::string> &args) {
 	if(args[0] == "set") {
-            //TODO: WRITE THIS COMMAND
-	    //local_variables[command_parts[1]] = command_parts[2];
+
 	}
 	else if(args[0] == "unset") {
             //TODO: WRITE THIS COMMAND
@@ -124,7 +125,7 @@ void run_internal(const std::vector<std::string> &args) {
 	else if(args[0] == "dir") {
             std::vector<std::string> result;
             list_files(".", "", result);
-            for (int i=0; i< result.size(); i++)
+            for (unsigned int i=0; i< result.size(); i++)
             {
                 std::cout << result[i] + " ";
             }
@@ -132,8 +133,8 @@ void run_internal(const std::vector<std::string> &args) {
             //TODO: MAYBE WE DONT WANT TO SHOW THINGS THAT START WITH . like .git
 	}
 	else if(args[0] == "history") {
-	    std::cout << "HISTORY IS NOT YET IMPLEMENTED" << std::endl;
-            //TODO: FIX ALEX's CODE TO USE A FILE
+	    int n = std::stoi(args[1]);
+	    commandHistory(n);
 	}
 	else if(args[0] == "clr") {
             std::cout << "\033[2J\033[1;1H";
@@ -156,8 +157,10 @@ void run_internal(const std::vector<std::string> &args) {
             //TODO: FINISH THIS
         }
 	else if(args[0] == "repeat") {
-	    std::cout << "REPEAT IS NOT IMPLEMENTED YET" << std::endl;
-            //TODO: FINISH THIS (ALEX's CODE NEEDS TO USE A FILE)
+			std::string lastCommand = repeatCommand();
+			std::vector<std::string> _args;
+			_args.push_back(lastCommand);
+			// execute_command(_args);
         }
 	else if(args[0] == "kill") {
 	    std::cout << "KILL IS NOT IMPLEMENTED YET" << std:: endl;
@@ -220,14 +223,14 @@ bool is_internal_command(std::string command) {
 void execute_command(const std::vector< std::vector<std::string> >& commands) {
 
 	int all_my_pipes[commands.size()][2];
-	for(int i = 0; i < commands.size(); i++) {
+	for(unsigned int i = 0; i < commands.size(); i++) {
 		pipe(all_my_pipes[i]);
 	}
 	int child_ids[commands.size()];
 
 	int* last_pipe = nullptr;
 
-	for(int i = 0; i < commands.size(); i++) {
+	for(unsigned int i = 0; i < commands.size(); i++) {
 		child_ids[i] = fork();
 		if(child_ids[i] == 0) {
 			if(i != 0) {
@@ -247,7 +250,7 @@ void execute_command(const std::vector< std::vector<std::string> >& commands) {
 		last_pipe = all_my_pipes[i];
 	}
 
-	for(int i = 0; i < commands.size(); i++) {
+	for(unsigned int i = 0; i < commands.size(); i++) {
 		waitpid(child_ids[i], NULL, 0);
 	}
 	std::cout << "done\n";
@@ -259,7 +262,7 @@ std::vector<std::string> split_but_preserve_literal_strings(const std::string& t
 	std::vector<std::string> rtn;
 	std::string t = "";
 
-	for(int i = 0; i < txt.size(); i++) {
+	for(unsigned int i = 0; i < txt.size(); i++) {
 		if(txt[i] == '\\') {
 			t += txt[i];
 			i++;
@@ -338,12 +341,13 @@ int main(int argc, const char * argv[]) {
 		std::getline(std::cin, command);
 		
 		std::string command_after_var_substitution = command;//substitute_variable_values(command, local_variables, global_variables);
-		
+		logCommand(command);
+
 		std::vector<std::string> individual_commands = split_but_preserve_literal_strings(command_after_var_substitution, '|');
 		
 		std::vector<std::vector<std::string> > args(individual_commands.size());
 
-		for(int i = 0; i < individual_commands.size(); i++) {
+		for(unsigned int i = 0; i < individual_commands.size(); i++) {
 			args[i] = split_but_preserve_literal_strings(individual_commands[i], ' ');
 		}
 		execute_command(args);
