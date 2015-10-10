@@ -24,6 +24,7 @@
 void execute_command(const std::vector< std::vector<std::string> >& commands);
 std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char symbol_to_split_by);
 
+std::string current_dir;
 extern char ** environ;
 
 std::unordered_map<std::string, std::string> local_variables;
@@ -186,7 +187,7 @@ void run_internal(const std::vector<std::string> &args) {
 	}
 	else if(args[0] == "dir") {
             std::vector<std::string> result;
-            list_files(".", "", result);
+            list_files(current_dir, "", result);
             for (unsigned int i=0; i< result.size(); i++)
             {
                 if (result[i][0] != '.') {
@@ -210,8 +211,24 @@ void run_internal(const std::vector<std::string> &args) {
             }
 	}
 	else if(args[0] == "chdir") {
-	    std::cout << "CHDIR IS NOT IMPLEMENTED YET" << std::endl;
-            //TODO: FINISH THIS (ALEX's CODE MAY WORK?)
+            if (args.size() == 2) {
+                if (!access((current_dir + "/" + args[1]).c_str(), F_OK)) {
+                    std::vector<std::string> components = split_but_preserve_literal_strings(args[1], '/');
+                    for (int i = 0; i < components.size(); i++) {
+                        if (components[i] == "..") {
+                            int found_index = current_dir.find_last_of('/');
+                            current_dir = current_dir.substr(0, found_index);
+                        }
+                        else if (components[i] != ".") {
+                            current_dir += "/" + components[i];
+                        }
+                    }
+                    std::cout << current_dir << std::endl;
+                }
+                else {
+                    std::cout << "This is not a dir you have access to." << std::endl;
+                }
+            }
 	}
 	else if(args[0] == "wait") {
 	    std::cout << "WAIT NOT IMPLEMENTED YET" << std::endl;
@@ -307,9 +324,6 @@ void execute_command(const std::vector< std::vector<std::string> >& commands) {
             return;
         }
                     
-        char buf[256];
-        std::string current_dir = getcwd(buf, 256);
-    
         //make sure we have access to run all of the commands
         for (int i = 0; i < commands.size(); ++i) {
             if (is_internal_command(commands[i][0])) {
@@ -467,7 +481,7 @@ int main(int argc, const char * argv[]) {
 	// 	}
         
         char buf[256];
-        std::string current_dir = getcwd(buf, 256);
+        current_dir = getcwd(buf, 256);
         std::string shell = "shell";
         std::string shellpath = current_dir + "/sish";
         setenv(&shell[0], &shellpath[0], getenv(&shell[0]) == NULL ? 0 : 1);

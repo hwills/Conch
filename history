@@ -31,3 +31,14 @@ ls
 ls -l
 echo test #comment
 history 3
+chdir ..
+chdir ../..
+chdir ..
+chdir ..
+chdir ..
+dir
+dir
+chdir ..
+dir
+chdir ..
+dir
