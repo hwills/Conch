@@ -1,7 +1,7 @@
 #include "Logger.h"
 
 void logCommand(std::string command) {
-    if (command != "repeat" && command != "exit") {
+    if(command != "repeat" && command != "exit") {
         std::ofstream history_file;
 
         history_file.open("history", std::ios_base::app);
@@ -9,21 +9,20 @@ void logCommand(std::string command) {
     }
 }
 
-std::string getLastLine(std::ifstream& in)
-{
-
+std::string getLastLine(std::ifstream& in) {
     std::string line;
-    while (in >> std::ws && std::getline(in, line));
+    while(in >> std::ws && std::getline(in, line));
     return line;
 }
 
 std::string repeatCommand() {
     std::ifstream file("history");
 
-    if (file) {
+    if(file) {
         std::string line = getLastLine(file);
         return line;
-    } else {
+    }
+    else {
     	return "";
     }
 }
@@ -31,23 +30,23 @@ std::string repeatCommand() {
 void commandHistory(int n) {
     std::ifstream file("history");
 
-    if (file) {
+    if(file) {
         std::vector<std::string> lines;
         std::string line;
-        while (file >> std::ws && std::getline(file, line)) {
+        while(file >> std::ws && std::getline(file, line)) {
             lines.push_back(line);
         };
 
-        if (n > lines.size()) {
+        if(n > lines.size()) {
             n = lines.size();
         }
 
-        if (n < 0) {
+        if(n < 0) {
             n = 1;
         }
 
         std::vector<std::string> lastLines(lines.end() - n, lines.end());
-        for (std::vector<std::string>::iterator it = lastLines.begin(); it != lastLines.end(); ++it) {
+        for(auto it = lastLines.begin(); it != lastLines.end(); ++it) {
             std::cout << *it << "\n";
         }
     }

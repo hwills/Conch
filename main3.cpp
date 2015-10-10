@@ -68,7 +68,7 @@ std::string substitute_variable_values(const std::string& txt) {
 			while(i < txt.size() && !(txt[i] == ' ')) {//&& is_legal_variable_character(txt[i])) { TODO: DICUSS THIS LINE WITH MORGAN
 				i++;
 			}
-			std::unordered_map<std::string, std::string>::const_iterator it = local_variables.find(txt.substr(start, i - start));
+			auto it = local_variables.find(txt.substr(start, i - start));
 			if(it == local_variables.end()) {
 				char * var_val = getenv(&txt.substr(start, i - start)[0]);
 				if(var_val == NULL) {
