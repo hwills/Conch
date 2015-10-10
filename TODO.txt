@@ -11,9 +11,9 @@ Priority        (Difficulty) NAME                                               
 5.1                     (D1){variable based} show, set, unset, export, unexport, environ, echo              MORGAN
 5.3                     (D1) chdir, dir                                                                     LIZZIE + ALEX
 5.2                     (D3){signaling based} exit, wait, pause, kill                                       BRIAN + HUNTER
-5.6                     (D0.5) clr                                                                          BRIAN (LIZZIE IF BRIAN CAN'T)
-5.5                     (D0.5) help                                                                         LIZZIE + ALEX
-5.4                     (D1) history, repeat                                                                LIZZIE + ALEX
+5.6                     (D0.5) clr                                                                          BRIAN                           Y
+5.5                     (D0.5) help                                                                         BRIAN                           Y
+5.4                     (D1) history, repeat                                                                LIZZIE + ALEX                   
 6               (D3) PIPES                                                                                  MORGAN							Y
 7               (D3) BACKGROUND COMMANDS                                                                    ALL (KEEP IN MIND WHEN WRITING CODE)
 8               (D3) EXTERNAL COMMANDS                                                                      MHB
