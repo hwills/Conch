@@ -183,4 +183,4 @@ std::string substitute_variable_values(const std::string& txt, const std::unorde
     return rtn;
 }
 
-#endif /* InterpretCommand_h */
+#endif

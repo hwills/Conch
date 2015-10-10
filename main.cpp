@@ -19,7 +19,7 @@
 
 std::string current_dir;
 bool kill_child = false;
-
+	
 int fd[2];
 
 std::string find_file(const std::string& file_name) {
@@ -49,6 +49,7 @@ void my_exec(const char* path, char * argv[]) {
 std::string execute(const std::string& command, int debug_level, std::unordered_map<std::string, std::string>& local_variables, std::unordered_map<std::string, std::string>& global_variables) {
 	
 	std::vector<std::string> command_parts = split_but_preserve_literal_strings(command, ' ');
+	int command_size = command_parts.size();
 
 	if(command_parts[0] == "-f") {
 		std::string file_name = command.substr(3, command.size());
@@ -78,7 +79,11 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
 		return command_parts[1];
 	}
 	else if(command_parts[0] == "help") {
-		return printHelp();
+		if (command_size == 1) {
+			return printHelp();
+		} else {
+			return functionHelp(command_parts[1]);
+		}
 	}
 	else if(command_parts[0] == "exit") {
 		throw 0; //TODO: replace this with an appropriate thrown value for good exiting
