@@ -12,7 +12,6 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
-#include "Variable.h"
 
 // if there are multiple spaces in a row, kill them all except one of them; spaces on the ends are killed entirely
 // the only exception is that if the spaces are between quotes, they should be preserved
@@ -152,7 +151,7 @@ std::vector<std::string> split_string(const std::string& txt, const char symbol_
     return rtn;
 }
 
-std::string substitute_variable_values(const std::string& txt, const std::unordered_map<std::string, Variable>& local_variables, const std::unordered_map<std::string, Variable>& global_variables) {
+std::string substitute_variable_values(const std::string& txt, const std::unordered_map<std::string, std::string>& local_variables, const std::unordered_map<std::string, std::string>& global_variables) {
     std::string rtn = "";
     for(int i = 0; i < txt.size(); i++) {
         if(txt[i] == '$') {
@@ -161,7 +160,7 @@ std::string substitute_variable_values(const std::string& txt, const std::unorde
             while(i < txt.size() && is_legal_variable_character(txt[i])) {
                 i++;
             }
-            std::unordered_map<std::string, Variable>::const_iterator it = local_variables.find(txt.substr(start, i - start));
+            std::unordered_map<std::string, std::string>::const_iterator it = local_variables.find(txt.substr(start, i - start));
             if(it == local_variables.end()) {
                 it = global_variables.find(txt.substr(start, i - start));
                 if(it == global_variables.end()) {
@@ -169,11 +168,11 @@ std::string substitute_variable_values(const std::string& txt, const std::unorde
                     rtn += '$';
                 }
                 else {
-                    rtn += it->second.value_as_string();
+                    rtn += it->second;
                 }
             }
             else {
-                rtn += it->second.value_as_string();
+                rtn += it->second;
             }
             i--;
         }
@@ -184,4 +183,4 @@ std::string substitute_variable_values(const std::string& txt, const std::unorde
     return rtn;
 }
 
-#endif /* InterpretCommand_h */
+#endif
