@@ -204,34 +204,34 @@ void run_internal(const std::vector<std::string> &args) {
 		commandHistory(n);
 	}
 	else if(args[0] == "clr") {
-			std::cout << "\033[2J\033[1;1H";
+		std::cout << "\033[2J\033[1;1H";
 	}
 	else if(args[0] == "environ") {
-			char** env;
-			for(env = environ; *env != 0; env++) {
-				char* thisEnv = *env;
-				std::cout << thisEnv << std::endl;	
-			}
+		char** env;
+		for(env = environ; *env != 0; env++) {
+			char* thisEnv = *env;
+			std::cout << thisEnv << std::endl;	
+		}
 	}
 	else if(args[0] == "chdir") {
-			if(args.size() == 2) {
-				if(!access((current_dir + "/" + args[1]).c_str(), F_OK)) {
-					std::vector<std::string> components = split_but_preserve_literal_strings(args[1], '/');
-					for(int i = 0; i < components.size(); i++) {
-						if(components[i] == "..") {
-							int found_index = current_dir.find_last_of('/');
-							current_dir = current_dir.substr(0, found_index);
-						}
-						else if(components[i] != ".") {
-							current_dir += "/" + components[i];
-						}
+		if(args.size() == 2) {
+			if(!access((current_dir + "/" + args[1]).c_str(), F_OK)) {
+				std::vector<std::string> components = split_but_preserve_literal_strings(args[1], '/');
+				for(int i = 0; i < components.size(); i++) {
+					if(components[i] == "..") {
+						int found_index = current_dir.find_last_of('/');
+						current_dir = current_dir.substr(0, found_index);
 					}
-					std::cout << current_dir << std::endl;
+					else if(components[i] != ".") {
+						current_dir += "/" + components[i];
+					}
 				}
-				else {
-					std::cout << "This is not a dir you have access to." << std::endl;
-				}
+				std::cout << current_dir << std::endl;
 			}
+			else {
+				std::cout << "This is not a dir you have access to." << std::endl;
+			}
+		}
 	}
 	else if(args[0] == "wait") {
 		std::cout << "WAIT NOT IMPLEMENTED YET" << std::endl;
@@ -241,14 +241,14 @@ void run_internal(const std::vector<std::string> &args) {
 		std::cin.ignore();
 	}
 	else if(args[0] == "repeat") {
-			std::string lastCommand = repeatCommand();
-			std::vector<std::string> _args;
-			_args.push_back(lastCommand);
-			// execute_command(_args);
-		}
+		std::string lastCommand = repeatCommand();
+		std::vector<std::string> _args;
+		_args.push_back(lastCommand);
+		// execute_command(_args);
+	}
 	else if(args[0] == "kill") {
 		std::cout << "KILL IS NOT IMPLEMENTED YET" << std:: endl;
-			//TODO: FINISH THIS
+		//TODO: FINISH THIS
 	}
 
 }
