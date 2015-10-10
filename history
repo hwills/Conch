@@ -42,3 +42,22 @@ chdir ..
 dir
 chdir ..
 dir
+set foo bar
+echo $foo
+$food
+boo$foo
+set ? bar
+echo ?
+set foo bar
+echo $foo
+echo $?
+echo $
+set $ bar
+echo $
+echo $$
+echo $$
+echo $$
+echo $$
+enviorn
+environ
+echo $?

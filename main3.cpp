@@ -65,7 +65,7 @@ std::string substitute_variable_values(const std::string& txt) {
         if(txt[i] == '$') {
             i++;
             int start = i;
-            while(i < txt.size() && is_legal_variable_character(txt[i])) {
+            while(i < txt.size() && !(txt[i] == ' ')) {//&& is_legal_variable_character(txt[i])) { TODO: DICUSS THIS LINE WITH MORGAN
                 i++;
             }
             std::unordered_map<std::string, std::string>::const_iterator it = local_variables.find(txt.substr(start, i - start));
@@ -150,21 +150,29 @@ void run_internal(const std::vector<std::string> &args) {
     //TODO: SPIT OUT ERRORS
 	if(args[0] == "set") {
 	    if (args.size() > 2) {
-                local_variables[args[1]] = args[2];
+                if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
+                    local_variables[args[1]] = args[2];
+                }
             }
 	}
 	else if(args[0] == "unset") {
             if (args.size() > 1) {
-	        local_variables.erase(args[1]);
+                if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
+	            local_variables.erase(args[1]);
+                }
             }
 	}
 	else if(args[0] == "export") {
             if (args.size() > 2) {
-                setenv(&args[1][0], &args[2][0], getenv(&args[1][0]) == NULL ? 0 : 1);
+                //if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
+                    setenv(&args[1][0], &args[2][0], getenv(&args[1][0]) == NULL ? 0 : 1);
+                //}
             }
 	}
 	else if(args[0] == "unexport") {
-	    unsetenv(&args[1][0]);
+            if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
+	        unsetenv(&args[1][0]);
+            }
 	}
 	else if(args[0] == "echo") {
 	    if (args.size() > 1) {
@@ -486,8 +494,10 @@ int main(int argc, const char * argv[]) {
         std::string shellpath = current_dir + "/sish";
         setenv(&shell[0], &shellpath[0], getenv(&shell[0]) == NULL ? 0 : 1);
         //TODO: BACKGROUND COMMANDS
+        local_variables["$"] = std::to_string(getpid());
+        local_variables["?"] = "no foreground commands run yet";
+        local_variables["!"] = "no background commands run yet";
         //TODO: SET SPECIAL VARIABLES
-        //TODO: MAKE ENVIRON WORK WITH NON ALPHA CHARS
         //TODO: STDIN STDOUT REDIRECTION
         //TODO: TERMINAL GENERATED SIGNALS
         //TODO: DEBUG MODE, EXECUTE FILE MODE, -X mode
