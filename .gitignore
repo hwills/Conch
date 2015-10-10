@@ -1,6 +1,7 @@
 conch
 conch.o
 InterpretCommands.o
+Documentation.o
 main.o
 *.swp
 .DS_Store
