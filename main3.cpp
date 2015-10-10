@@ -23,6 +23,7 @@
 
 void execute_command(const std::vector< std::vector<std::string> >& commands);
 
+extern char ** environ;
 
 std::unordered_map<std::string, std::string> local_variables;
 
@@ -179,24 +180,16 @@ void run_internal(const std::vector<std::string> &args) {
 	    }
             //TODO: USE MORE FILTER and MAKE MANS
 	}
-	else if(args[0] == "exit") {
-	    if (args.size() == 1) {
-                exit(0);
-	    }
-            else if (args.size() > 1) {
-                exit(stoi(args[1]));//TODO: TRY
-	    }
-            //TODO: HARD CODE INTO MAIN
-	}
 	else if(args[0] == "dir") {
             std::vector<std::string> result;
             list_files(".", "", result);
             for (unsigned int i=0; i< result.size(); i++)
             {
-                std::cout << result[i] + " ";
+                if (result[i][0] != '.') {
+                    std::cout << result[i] + " ";
+                }
             }
             std::cout << std::endl;
-            //TODO: MAYBE WE DONT WANT TO SHOW THINGS THAT START WITH . like .git
 	}
 	else if(args[0] == "history") {
 	    int n = std::stoi(args[1]);
@@ -205,9 +198,12 @@ void run_internal(const std::vector<std::string> &args) {
 	else if(args[0] == "clr") {
             std::cout << "\033[2J\033[1;1H";
 	}
-	else if(args[0] == "enviorn") {
-	    std::cout << "ENVIORN NOT IMPLEMENTED YET" << std::endl;
-            //TODO: FINISH THIS
+	else if(args[0] == "environ") {
+            char** env;
+            for (env = environ; *env != 0; env++) {
+                char* thisEnv = *env;
+                std::cout << thisEnv << std::endl;    
+            }
 	}
 	else if(args[0] == "chdir") {
 	    std::cout << "CHDIR IS NOT IMPLEMENTED YET" << std::endl;
@@ -281,12 +277,28 @@ bool is_internal_command(std::string command) {
 	else if(command == "kill") {
 		return true;
 	}
+	else if(command == "exit") {
+		return true;
+	}
 	return false;
 }
 
 void execute_command(const std::vector< std::vector<std::string> >& commands) {
 
         if(commands.size() == 1 && is_internal_command(commands[0][0])) {
+	    if(commands[0][0] == "exit") {
+	            if (commands[0].size() == 1) {
+                        exit(0);
+	            }
+                    else if (commands[0].size() > 1) {
+                        try {
+                            exit(stoi(commands[0][1]));
+                        }
+                        catch (...) {//if they attempted to exit with a non integer value
+                            exit(-1);
+                        }
+	            }
+	    }
 	    run_internal(commands[0]);// run internal command
             return;
         }
