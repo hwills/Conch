@@ -152,6 +152,12 @@ void run_internal(const std::vector<std::string> &args) {
 				local_variables[args[1]] = args[2];
 			}
 		}
+		else if(args.size() == 1) {
+			std::string value;
+			std::getline(std::cin, value);
+			local_variables[args[1]] = value;
+
+		}
 	}
 	else if(args[0] == "unset") {
 		if(args.size() > 1) {
