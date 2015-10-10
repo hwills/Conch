@@ -61,3 +61,13 @@ echo $$
 enviorn
 environ
 echo $?
+hello
+set foo bar
+$foo
+!
+$!
+set a "a b c"
+$a
+$!
+echo $!
+echo "$!"
