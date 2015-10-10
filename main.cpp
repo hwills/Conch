@@ -274,54 +274,61 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
 	else if(command_parts[0] == "") {
 		return "";
 	}
-	else if(!access((current_dir+"/"+command_parts[0]).c_str(), X_OK)) { //check if external command
-            //TODO: USE PATH VARIABLE TO MAKE FIND COMMANDS
-		if (debug_level >= 1) {
-			std::cout << "DEBUG: Beginning execution of <" << (current_dir+"/"+command_parts[0]).c_str() << ">" << std::endl;
-		}
-		//run external command as child process (fork and execv)
-
-		char read_buffer[80];
-		pipe(fd);
-
-		int pid = fork();
-		if(pid == 0) {
-
-			close(fd[0]); // child closes input side of pipe
-
-			char * argv[command_parts.size() - 1];
-			for(int i = 1; i < command_parts.size(); i++) {
-				//TODO: get command line args to work
-				//argv[i-1] = command_parts[i].c_str();
-			}
-
-			my_exec((current_dir+"/"+command_parts[0]).c_str(), argv);
-		}
-		else {
-
-			close(fd[1]);
-			read(fd[0], read_buffer, sizeof(read_buffer));
-			if(read_buffer[0] == 'k') {
-				std::cout << "DEBUG: Trying to kill my child" << std::endl;
-				kill(pid, SIGINT);
-			}
-			else {
-				std::cout << "BUFFER:" << read_buffer << std::endl;
-			}
-
-			if (debug_level >= 1) {
-				std::cout << "DEBUG: Waiting for process <" << pid << "> to complete" << std::endl;
-			}
-			//wait for command completion (pass signals as necessecary)
-			// while(true) {
-			// 	// TODO: watch for a signals to send to child
-			// }
-		}
-		return "";
-	}
-	else {
+	else { //check if external command
+            //USE PATH VARIABLE TO MAKE FIND COMMANDS
+            /*std::vector<std::string> paths;
+            for (int i = 0; i < paths.length(); ++i) {
+                if(!access((paths[i]+"/"+command_parts[0]).c_str(), X_OK)) {
+                    exec_external(paths[i]+"/"+command_parts[0]);
+                    return "OUTPUT OF EXTRNAL COMMANDS";//TODO: get this
+                }
+            }*/
+            if(!access((current_dir+"/"+command_parts[0]).c_str(), X_OK)) {
+                //exec_external(current_dir+"/"+command_parts[0]);
+                return "OUTPUT OF EXTERNAL COMMAND"; //TODO: get this
+            }
+	    else {
 		return "UNKNOWN COMMAND: " + command_parts[0];
+	    }
 	}
+}
+
+std::string exec_external(std::string path_to_command) {
+/*    if (debug_level >= 1) {
+            std::cout << "DEBUG: Beginning execution of <" << (current_dir+"/"+command_parts[0]).c_str() << ">" << std::endl;
+    }
+    //run external command as child process (fork and execv)
+    char read_buffer[80];
+    pipe(fd);
+    int pid = fork();
+    if(pid == 0) {
+        close(fd[0]); // child closes input side of pipe
+        char * argv[command_parts.size() - 1];
+        for(int i = 1; i < command_parts.size(); i++) {
+                //TODO: get command line args to work
+                //argv[i-1] = command_parts[i].c_str();
+        }
+        my_exec((path_to_command).c_str(), argv);
+    }
+    else {
+        close(fd[1]);
+        read(fd[0], read_buffer, sizeof(read_buffer));
+        if(read_buffer[0] == 'k') {
+            std::cout << "DEBUG: Trying to kill my child" << std::endl;
+            kill(pid, SIGINT);
+        }
+        else {
+            std::cout << "BUFFER:" << read_buffer << std::endl;
+        }
+        if (debug_level >= 1) {
+            std::cout << "DEBUG: Waiting for process <" << pid << "> to complete" << std::endl;
+        }
+        //wait for command completion (pass signals as necessecary)
+        while(true) {
+            // TODO: watch for a signals to send to child
+        }
+    }*/
+    return "";
 }
 
 void ctrlC_handler(int sig) {
@@ -363,6 +370,7 @@ int main(int argc, const char * argv[]) {
         //TODO: STDIN STDOUT REDIRECTION
         //TODO: FINISH PIPES AND EXTERNAL COMMANDS
         //TODO: TERMINAL GENERATED SIGNALS
+        //TODO: DEBUG MODE, EXECUTE FILE MODE, -X mode
 
 
 	while(true) {
