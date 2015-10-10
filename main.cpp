@@ -2,13 +2,15 @@
 //  main.cpp
 //  ShellFish
 //
-//  Created by Morgan Redding, Hunter Wills, Bryan Lamb, Lizzie Halper, and Alex Tran on 10/10/2015.
+//  Authors: Morgan Redding, Hunter Wills, Brian Lam, 
+//	Lizzie Halper, and Alex Tran on 10/10/2015.
 //
 
 #include <iostream>
-#include <string>
+#include <string.h>
 #include <stdlib.h>
 #include "InterpretCommand.h"
+#include "Documentation.h"
 
 #include <sys/types.h>
 #include <signal.h>
@@ -74,6 +76,9 @@ std::string execute(const std::string& command, int debug_level, std::unordered_
 	}
 	else if(command_parts[0] == "echo") {
 		return command_parts[1];
+	}
+	else if(command_parts[0] == "help") {
+		return printHelp();
 	}
 	else if(command_parts[0] == "exit") {
 		throw 0; //TODO: replace this with an appropriate thrown value for good exiting
