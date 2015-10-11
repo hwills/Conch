@@ -2,7 +2,7 @@
 //  main.cpp
 //  ShellFish
 //
-//  Created by Morgan Redding, Hunter Wills, Bryan Lamb, Lizzie Halper, and Alex Tran on 10/10/2015.
+//  Created by Morgan Redding, Hunter Wills, Bryan Lamb, and Alex Tran on 10/10/2015.
 //
 
 #include <iostream>
@@ -22,44 +22,20 @@
 #include "Documentation.h"
 #include "Logger.h"
 
+
+//declaration of functions
 void execute_command(std::vector< std::vector<std::string> > commands);
 std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char symbol_to_split_by);
 
-std::string current_dir;
-extern char ** environ;
-int debug_level = 0;
+std::string current_dir; // The directory our shell is currently working in. Used for dir and chdir
+extern char ** environ; // The environment variables set by our parent. Used to display the environ variables
+int debug_level = 0; 
 
 std::vector<int> child_ids;
 
 std::unordered_map<std::string, std::string> local_variables;
 
 std::vector<int> background_commands;
-
-bool is_legal_variable_character(char c) {
-    if(c < 47) {
-        return false;
-    }
-    if(c < 58) {
-        return true;
-    }
-    if(c < 65) {
-        return false;
-    }
-    if(c < 91) {
-        return true;
-    }
-    if(c == 95) {
-        return true;
-    }
-    if(c < 97) {
-        return false;
-    }
-    if(c < 123) {
-        return true;
-    }
-    return false;
-}
-
 
 std::string substitute_variable_values(const std::string& txt) {
     std::string rtn = "";
@@ -70,7 +46,7 @@ std::string substitute_variable_values(const std::string& txt) {
         if(txt[i] == '$') {
             i++;
             int start = i;
-            while(i < txt.size() && !(txt[i] == ' ')) {//&& is_legal_variable_character(txt[i])) { TODO: DICUSS THIS LINE WITH MORGAN
+            while(i < txt.size() && (txt[i] != ' ')) {
                 i++;
             }
             auto it = local_variables.find(txt.substr(start, i - start));
