@@ -15,4 +15,6 @@
 std::string printHelp();
 std::string functionHelp(std::string _function);
 void populateDocumentation();
+void populateDocumentationDetailed();
+
 #endif

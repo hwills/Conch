@@ -39,20 +39,20 @@ std::vector<int> background_commands;
 
 std::string substitute_variable_values(const std::string& txt) {
     std::string rtn = "";
-    for(int i = 0; i < txt.size(); i++) {
-        if(txt[i] == '#') {
+    for (int i = 0; i < txt.size(); i++) {
+        if (txt[i] == '#') {
             break;
         }
-        if(txt[i] == '$') {
+        if (txt[i] == '$') {
             i++;
             int start = i;
             while(i < txt.size() && (txt[i] != ' ')) {
                 i++;
             }
             auto it = local_variables.find(txt.substr(start, i - start));
-            if(it == local_variables.end()) {
+            if (it == local_variables.end()) {
                 char * var_val = getenv(&txt.substr(start, i - start)[0]);
-                if(var_val == NULL) {
+                if (var_val == NULL) {
                     i = start;
                     rtn += '$';
                 }
@@ -86,11 +86,11 @@ int list_files(std::string current_dir, std::string raw_path, std::vector<std::s
    */
 
     std::string path;
-    if(raw_path.size()==0)  {
+    if (raw_path.size()==0)  {
         //empty
         path= current_dir;
     }
-    else if(raw_path[0] != '/')  {
+    else if (raw_path[0] != '/')  {
         // sub directory
         path= current_dir+"/"+raw_path;
     }
@@ -104,7 +104,7 @@ int list_files(std::string current_dir, std::string raw_path, std::vector<std::s
     struct dirent *ent;
     const char * final_path = path.c_str(); 
     dir = opendir(final_path);
-    if(dir)  {
+    if (dir)  {
         while ((ent = readdir(dir)) != NULL)  {
             result.push_back(ent->d_name);
             // cout << ent->d_name << endl;
@@ -127,13 +127,13 @@ void run_internal(const std::vector<std::string> &args) {
     // TODO: SPIT OUT ERRORS
     // TODO: make it so they can either accept an additinal argument OR input
     //         e.g. so I can do either "set foo bar" or "set foo\nbar"
-    if(args[0] == "set") {
-        if(args.size() > 2) {
-            if(args[1] != "$" && args[1] != "?" && args[1] != "!") {
+    if (args[0] == "set") {
+        if (args.size() > 2) {
+            if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
                 local_variables[args[1]] = args[2];
             }
         }
-        else if(args.size() == 2) {
+        else if (args.size() == 2) {
             std::string value;
             std::getline(std::cin, value);
             local_variables[args[1]] = value;
@@ -143,76 +143,76 @@ void run_internal(const std::vector<std::string> &args) {
             std::cout << "DEBUG: set argument <" << args[1] << ">" << std::endl;
         }
     }
-    else if(args[0] == "unset") {
-        if(args.size() > 1) {
-            if(args[1] != "$" && args[1] != "?" && args[1] != "!") {
+    else if (args[0] == "unset") {
+        if (args.size() > 1) {
+            if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
             local_variables.erase(args[1]);
             }
         }
     }
-    else if(args[0] == "export") {
-        if(args.size() > 2) {
+    else if (args[0] == "export") {
+        if (args.size() > 2) {
             setenv(&args[1][0], &args[2][0], getenv(&args[1][0]) == NULL ? 0 : 1);
         }
     }
-    else if(args[0] == "unexport") {
-        if(args[1] != "$" && args[1] != "?" && args[1] != "!") {
+    else if (args[0] == "unexport") {
+        if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
             unsetenv(&args[1][0]);
         }
     }
-    else if(args[0] == "echo") {
-        if(args.size() > 1) {
+    else if (args[0] == "echo") {
+        if (args.size() > 1) {
             std::cout << args[1] << std::endl;
         }
     }
-    else if(args[0] == "show") {
-        if(args.size() > 1) {
+    else if (args[0] == "show") {
+        if (args.size() > 1) {
             std::cout << args[1] << std::endl;
         }
     }
-    else if(args[0] == "help") {
-        if(args.size() == 1) {
+    else if (args[0] == "help") {
+        if (args.size() == 1) {
             printHelp();
         }
-        else if(args.size() > 1) {
+        else if (args.size() > 1) {
             functionHelp(args[1]);
         }
         //TODO: USE MORE FILTER and MAKE MANS
     }
-    else if(args[0] == "dir") {
+    else if (args[0] == "dir") {
         std::vector<std::string> result;
         list_files(current_dir, "", result);
-        for(unsigned int i=0; i< result.size(); i++) {
-            if(result[i][0] != '.') {
+        for (unsigned int i=0; i< result.size(); i++) {
+            if (result[i][0] != '.') {
                 std::cout << result[i] + " ";
             }
         }
         std::cout << std::endl;
     }
-    else if(args[0] == "history") {
+    else if (args[0] == "history") {
         int n = std::stoi(args[1]);
         commandHistory(n);
     }
-    else if(args[0] == "clr") {
+    else if (args[0] == "clr") {
         std::cout << "\033[2J\033[1;1H";
     }
-    else if(args[0] == "environ") {
+    else if (args[0] == "environ") {
         char** env;
-        for(env = environ; *env != 0; env++) {
+        for (env = environ; *env != 0; env++) {
             char* thisEnv = *env;
             std::cout << thisEnv << std::endl;    
         }
     }
-    else if(args[0] == "chdir") {
-        if(args.size() == 2) {
-            if(!access((current_dir + "/" + args[1]).c_str(), F_OK)) {
+    else if (args[0] == "chdir") {
+        if (args.size() == 2) {
+            if (!access((current_dir + "/" + args[1]).c_str(), F_OK)) {
                 std::vector<std::string> components = split_but_preserve_literal_strings(args[1], '/');
-                for(int i = 0; i < components.size(); i++) {
-                    if(components[i] == "..") {
+                for (int i = 0; i < components.size(); i++) {
+                    if (components[i] == "..") {
                         int found_index = current_dir.find_last_of('/');
                         current_dir = current_dir.substr(0, found_index);
                     }
-                    else if(components[i] != ".") {
+                    else if (components[i] != ".") {
                         current_dir += "/" + components[i];
                     }
                 }
@@ -223,11 +223,11 @@ void run_internal(const std::vector<std::string> &args) {
             }
         }
     }
-    else if(args[0] == "wait") {
+    else if (args[0] == "wait") {
         std::string value;
         int pid;    
 
-        if(args.size() < 2) {
+        if (args.size() < 2) {
             std::getline(std::cin, value);
         }
         else {
@@ -249,28 +249,28 @@ void run_internal(const std::vector<std::string> &args) {
             waitpid(pid, NULL, 0);
         }
     }
-    else if(args[0] == "pause") {
+    else if (args[0] == "pause") {
         std::cin.ignore();
     }
-    else if(args[0] == "repeat") {
+    else if (args[0] == "repeat") {
         std::string lastCommand = repeatCommand();
         std::vector<std::string> _args;
         _args.push_back(lastCommand);
         // execute_command(_args);
     }
-    else if(args[0] == "kill") {
+    else if (args[0] == "kill") {
             
         std::string value;
         int pid;    
 
-        if(args.size() < 2) {
+        if (args.size() < 2) {
             std::getline(std::cin, value);
         }
         else {
             value = args[1];
         }
 
-        if(value[0] == '-') {
+        if (value[0] == '-') {
             
             int sig_num;
 
@@ -283,7 +283,7 @@ void run_internal(const std::vector<std::string> &args) {
 
             std::string value2;
 
-            if(args.size() < 3) {
+            if (args.size() < 3) {
                 std::getline(std::cin, value2);
             }
             else {
@@ -318,14 +318,14 @@ void run_internal(const std::vector<std::string> &args) {
 }
 
 char** args_conversion(std::vector< std::string > args) {
-    if(args.size() == 1) {
+    if (args.size() == 1) {
         return nullptr;
     }
     char ** formatted_args = new char*[args.size()];
-    for(size_t i = 1; i < args.size(); i++) {
+    for (size_t i = 1; i < args.size(); i++) {
         // need to copy the strings (so that they're not const)
         formatted_args[i - 1] = new char[args[i].size() + 1];
-        for(size_t j = 0; j < args[i].size(); j++) {
+        for (size_t j = 0; j < args[i].size(); j++) {
             formatted_args[i - 1][j] = args[i][j];
         }
         formatted_args[i - 1][args[i].size()] = '\0';
@@ -335,37 +335,37 @@ char** args_conversion(std::vector< std::string > args) {
 }
 
 bool is_internal_command(std::string command) {
-    if(command == "clr") {
+    if (command == "clr") {
         return true;
     }
-    else if(command == "set" || command == "unset") {
+    else if (command == "set" || command == "unset") {
         return true;
     }
-    else if(command == "export" || command == "unexport") {
+    else if (command == "export" || command == "unexport") {
         return true;
     }
-    else if(command == "echo" || command == "show") {
+    else if (command == "echo" || command == "show") {
         return true;
     }
-    else if(command == "help") {
+    else if (command == "help") {
         return true;
     }
-    else if(command == "dir" || command == "chdir") {
+    else if (command == "dir" || command == "chdir") {
         return true;
     }
-    else if(command == "history" || command == "repeat") {
+    else if (command == "history" || command == "repeat") {
         return true;
     }
-    else if(command == "environ") {
+    else if (command == "environ") {
         return true;
     }
-    else if(command == "wait" || command == "pause") {
+    else if (command == "wait" || command == "pause") {
         return true;
     }
-    else if(command == "kill") {
+    else if (command == "kill") {
         return true;
     }
-    else if(command == "exit") {
+    else if (command == "exit") {
         return true;
     }
     return false;
@@ -375,8 +375,8 @@ std::string find_file(const std::string & file_name) {
     std::string path_var = "PATH";
     std::string path = getenv(&path_var[0]);
     std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
-    for(int j = 0; j < path_components.size(); ++j) {
-        if(!access((path_components[j] + "/" + file_name).c_str(), X_OK)) {
+    for (int j = 0; j < path_components.size(); ++j) {
+        if (!access((path_components[j] + "/" + file_name).c_str(), X_OK)) {
             return path_components[j] + "/" + file_name;
         }
     }
@@ -385,10 +385,10 @@ std::string find_file(const std::string & file_name) {
 
 void execute_command(std::vector< std::vector<std::string> > commands) {
 
-    if(commands.back().back() == "!") {
+    if (commands.back().back() == "!") {
         // background command
         int pid = fork();
-        if(pid == 0) {
+        if (pid == 0) {
 
             commands.back().pop_back();
 
@@ -406,7 +406,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
         }
     }
 
-    if(commands.back()[commands.back().size() - 2] == ">") {
+    if (commands.back()[commands.back().size() - 2] == ">") {
         // redirect output to a file
         std::string file_name = commands.back().back();
         commands.back().pop_back();
@@ -422,7 +422,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
         close(stdout_dupfd);
         return;
     }
-    else if(commands.back()[commands.back().size() - 2] == "<") {
+    else if (commands.back()[commands.back().size() - 2] == "<") {
         // redirect input to a file
         std::string file_name = commands.back().back();
         commands.back().pop_back();
@@ -440,12 +440,12 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
     }
 
 
-    if(commands.size() == 1 && is_internal_command(commands[0][0])) {
-        if(commands[0][0] == "exit") {
-            if(commands[0].size() == 1) {
+    if (commands.size() == 1 && is_internal_command(commands[0][0])) {
+        if (commands[0][0] == "exit") {
+            if (commands[0].size() == 1) {
                     exit(0);
             }
-            else if(commands[0].size() > 1) {
+            else if (commands[0].size() > 1) {
                 try {
                     exit(stoi(commands[0][1]));
                 }
@@ -459,11 +459,11 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
     }
 
     //make sure we have access to run all of the commands
-    for(int i = 0; i < commands.size(); ++i) {
-        if(is_internal_command(commands[i][0])) {
+    for (int i = 0; i < commands.size(); ++i) {
+        if (is_internal_command(commands[i][0])) {
             continue;
         }
-        else if(!access((current_dir + "/" + commands[i][0]).c_str(), X_OK)) {
+        else if (!access((current_dir + "/" + commands[i][0]).c_str(), X_OK)) {
             continue;
         }
         else {
@@ -471,13 +471,13 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
             std::string path = getenv(&path_var[0]);
             std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
             bool success = false;
-            for(int j = 0; j < path_components.size(); ++j) {
-                if(!access((path_components[j] + "/" + commands[i][0]).c_str(), X_OK)) {
+            for (int j = 0; j < path_components.size(); ++j) {
+                if (!access((path_components[j] + "/" + commands[i][0]).c_str(), X_OK)) {
                     success = true;
                     break;
                 }
             }
-            if(!success) {
+            if (!success) {
                 std::cout << "COMMAND NOT FOUND: " << commands[i][0] << std::endl;
                 return;
             }
@@ -486,7 +486,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
 
 
     int all_my_pipes[commands.size()][2];
-    for(unsigned int i = 0; i < commands.size(); i++) {
+    for (unsigned int i = 0; i < commands.size(); i++) {
         pipe(all_my_pipes[i]);
     }
     
@@ -494,7 +494,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
 
     int* last_pipe = nullptr;
 
-    for(unsigned int i = 0; i < commands.size(); i++) {
+    for (unsigned int i = 0; i < commands.size(); i++) {
         if (debug_level >= 1) {
             std::cout << "DEBUG: Running external command<" << commands[i][0] << ">" << std::endl;
         }
@@ -505,31 +505,31 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
             continue;
         }
         child_ids[i] = fork();
-        if(child_ids[i] == 0) {
+        if (child_ids[i] == 0) {
                 std::string shell = "parent";
                 std::string shellpath = current_dir + "/sish";
                 setenv(&shell[0], &shellpath[0], getenv(&shell[0]) == NULL ? 0 : 1);
-            if(i != 0) {
+            if (i != 0) {
                 set_write(last_pipe);
             }
-            if(i != commands.size() - 1) {
+            if (i != commands.size() - 1) {
                 set_read(all_my_pipes[i]);
             }
-            if(is_internal_command(commands[i][0])) {
+            if (is_internal_command(commands[i][0])) {
                 run_internal(commands[i]);// run internal command
                 exit(0);
             }
             else {
                 std::string command = commands[i][0];
-                if(!access((current_dir + "/" + commands[i][0]).c_str(), X_OK)) {
+                if (!access((current_dir + "/" + commands[i][0]).c_str(), X_OK)) {
                     command = current_dir + "/" + commands[i][0];
                 }
                 else {
                     std::string path_var = "PATH";
                     std::string path = getenv(&path_var[0]);
                     std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
-                    for(int j = 0; j < path_components.size(); ++j) {
-                        if(!access((path_components[j] + "/" + commands[i][0]).c_str(), X_OK)) {
+                    for (int j = 0; j < path_components.size(); ++j) {
+                        if (!access((path_components[j] + "/" + commands[i][0]).c_str(), X_OK)) {
                             command = path_components[j] + "/" + commands[i][0];
                             break;
                         }
@@ -541,7 +541,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
         last_pipe = all_my_pipes[i];
     }
 
-    for(unsigned int i = 0; i < commands.size(); i++) {
+    for (unsigned int i = 0; i < commands.size(); i++) {
         int status = -1;
         waitpid(child_ids[i], &status, 0);
         local_variables["?"] = std::to_string(WEXITSTATUS(status));//ONLY THE 8 LEAST SIGNIFICANT BITS STORE THE EXIT STATUS
@@ -549,58 +549,55 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
 }
 
 // splits a string by a character, ignoring characters between quotes
-std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char symbol_to_split_by) {
-
-    // TODO: debug
+// splits a string by a character, ignoring characters between quotes
+std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char delimiter) {
+    
+    std::cout << txt << "\n";
+    
     std::vector<std::string> rtn;
-    std::string t = "";
-
-    for(unsigned int i = 0; i < txt.size(); i++) {
-        if(txt[i] == '\\') {
-            t += txt[i];
+    
+    size_t i = 0;
+    while (i < txt.size()) {
+        while (i < txt.size() && txt[i] == delimiter) {
             i++;
-            t += txt[i];
-            continue;
         }
-        if(txt[i] == '\'') {
-            i++;
-            while(i < txt.size() && txt[i] != '\'') {
-                if(txt[i] == '\\') {
-                    t += txt[i];
+        if (i == txt.size()) {
+            break;
+        }
+        rtn.push_back("");
+        while (i < txt.size() && txt[i] != delimiter) {
+            if (txt[i] == '\\') {
+                i++;
+                if (i < txt.size()) {
+                    rtn.back() += txt[i];
+                }
+            }
+            else if (txt[i] == '"') {
+                rtn.back() += txt[i];
+                i++;
+                while (i < txt.size() && txt[i] != '"') {
+                    if (txt[i] == '\\') {
+                        i++;
+                    }
+                    if (i < txt.size()) {
+                        rtn.back() += txt[i];
+                    }
                     i++;
                 }
-                t += txt[i];
-                i++;
+                rtn.back() += txt[i];
             }
-        }
-        else if(txt[i] == '"') {
+            else {
+                rtn.back() += txt[i];
+            }
             i++;
-            while(i < txt.size() && txt[i] != '"') {
-                if(txt[i] == '\\') {
-                    t += txt[i];
-                    i++;
-                }
-                t += txt[i];
-                i++;
-            }
-        }
-        else if(txt[i] == symbol_to_split_by) {
-            if(t != "") {
-                rtn.push_back(t);
-                t = "";
-            }
-        }
-        else {
-            t += txt[i];
         }
     }
     
-    rtn.push_back(t);
     return rtn;
 }
 
 void signal_handler(int sig) {
-    for(size_t i = 0; i < child_ids.size(); i++) {
+    for (size_t i = 0; i < child_ids.size(); i++) {
         kill(child_ids[i], sig);
     }
     std::cout << std::endl;
@@ -617,7 +614,7 @@ int main(int argc, const char * argv[]) {
     sigaddset(&newsigset, SIGTERM);
     sigaddset(&newsigset, SIGUSR1);
     sigaddset(&newsigset, SIGUSR2);
-    if(sigprocmask(SIG_BLOCK, &newsigset, NULL) < 0) {
+    if (sigprocmask(SIG_BLOCK, &newsigset, NULL) < 0) {
         perror("could not block the signal");
     }
 
@@ -631,12 +628,12 @@ int main(int argc, const char * argv[]) {
     std::vector< std::string > file_args;
 
     int i = 1;
-    while(i < argc) {
-        if(std::string(argv[i]) == "-x") {
+    while (i < argc) {
+        if (std::string(argv[i]) == "-x") {
             x_flag = true;
             i++;
         }
-        else if(std::string(argv[i]) == "-d") {
+        else if (std::string(argv[i]) == "-d") {
             try {
                 debug_level = atoi(argv[i + 1]);
             }
@@ -646,9 +643,9 @@ int main(int argc, const char * argv[]) {
             }
             i += 2;
         }
-        else if(std::string(argv[i]) == "-f") {
+        else if (std::string(argv[i]) == "-f") {
             i++;
-            while(i < argc) {
+            while (i < argc) {
                 file_args.push_back(argv[i]);
                 i++;
             }
@@ -682,7 +679,7 @@ int main(int argc, const char * argv[]) {
     if (file_args.size() >=1) 
     {
 
-        for(int i = 1; i < file_args.size(); ++i) {
+        for (int i = 1; i < file_args.size(); ++i) {
             local_variables[std::to_string(i)] = file_args[i];
         }
 
@@ -701,7 +698,7 @@ int main(int argc, const char * argv[]) {
             
             std::vector<std::vector<std::string> > args(individual_commands.size());
             
-            for(unsigned int i = 0; i < individual_commands.size(); i++) {
+            for (unsigned int i = 0; i < individual_commands.size(); i++) {
                 args[i] = split_but_preserve_literal_strings(individual_commands[i], ' ');
             }
             execute_command(args);
@@ -710,7 +707,7 @@ int main(int argc, const char * argv[]) {
         return 0;
     }
 
-    while(true) {
+    while (true) {
     
         std::string command;
         
@@ -728,7 +725,7 @@ int main(int argc, const char * argv[]) {
         
         std::vector<std::vector<std::string> > args(individual_commands.size());
         
-        for(unsigned int i = 0; i < individual_commands.size(); i++) {
+        for (unsigned int i = 0; i < individual_commands.size(); i++) {
             args[i] = split_but_preserve_literal_strings(individual_commands[i], ' ');
         }
 
