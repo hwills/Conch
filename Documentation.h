@@ -3,7 +3,7 @@
 //  ShellFish
 //
 //  Authors: Morgan Redding, Hunter Wills, Brian Lam, 
-//	Lizzie Halper, and Alex Tran on 10/10/2015.
+//	and Alex Tran on 10/10/2015.
 //
 
 #ifndef DOCUMENTATION_H

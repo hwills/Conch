@@ -1,3 +1,11 @@
+//
+//  Logger.cpp
+//  Source code for logging and retrieving past commands
+//
+//  Authors: Morgan Redding, Hunter Wills, Brian Lam, 
+//  and Alex Tran on 10/10/2015.
+//
+
 #include "Logger.h"
 
 /* 

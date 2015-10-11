@@ -1,3 +1,11 @@
+//
+//  Documentation.cpp
+//  Source code for help functions
+//
+//  Authors: Morgan Redding, Hunter Wills, Brian Lam, 
+//  and Alex Tran on 10/10/2015.
+//
+
 #include "Documentation.h"
 
 std::unordered_map<std::string, std::string> functions_help;
