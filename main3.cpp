@@ -344,6 +344,10 @@ void run_internal(const std::vector<std::string> &args) {
             value = args[1];
         }
 
+        if (debug_level >= 1) {
+            std::cout << "The first arg to kill is <" << value << ">" << std::endl;
+        }
+
         if (value[0] == '-') {
             
             int sig_num;
@@ -384,8 +388,12 @@ void run_internal(const std::vector<std::string> &args) {
                 std::cout << "process id not an integer" << std::endl;
                 return;
             }
+            
+            if (debug_level >= 1) {
+                std::cout << "The pid we are killing is <" << pid << ">" << std::endl;
+            }
 
-            kill(pid, SIGTERM);
+            kill(pid, SIGINT);
 
         }
     }
