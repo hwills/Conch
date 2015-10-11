@@ -120277,3 +120277,6 @@ echo "tehtjeka ahsjd ahjs "
 set morg et
 set me < test.txt > no.txt
 ls .
+foo
+foo
+foo

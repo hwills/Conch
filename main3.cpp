@@ -29,6 +29,8 @@ std::string current_dir;
 extern char ** environ;
 int debug_level = 0;
 
+std::vector<int> child_ids;
+
 std::unordered_map<std::string, std::string> local_variables;
 
 std::vector<int> background_commands;
@@ -511,7 +513,8 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
     for(unsigned int i = 0; i < commands.size(); i++) {
         pipe(all_my_pipes[i]);
     }
-    int child_ids[commands.size()];
+    
+    child_ids = std::vector<int>(commands.size());
 
     int* last_pipe = nullptr;
 
@@ -572,6 +575,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
 // splits a string by a character, ignoring characters between quotes
 std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char symbol_to_split_by) {
 
+    // TODO: debug
     std::vector<std::string> rtn;
     std::string t = "";
 
@@ -619,21 +623,33 @@ std::vector<std::string> split_but_preserve_literal_strings(const std::string& t
     return rtn;
 }
 
-void ctrlC_handler(int sig) {
-    // TODO
+void signal_handler(int sig) {
+    for(size_t i = 0; i < child_ids.size(); i++) {
+        kill(child_ids[i], sig);
+    }
+    std::cout << std::endl;
 }
 
 int main(int argc, const char * argv[]) {
 
-    // blocks user from quitting program
+    // ignore signals
     sigset_t newsigset;
     sigemptyset(&newsigset);
-    sigaddset(&newsigset, SIGTSTP); // block ctrl-Z
-    // sigaddset(&newsigset, SIGINT);  // block ctrl-C
+    sigaddset(&newsigset, SIGABRT);
+    sigaddset(&newsigset, SIGALRM);
+    sigaddset(&newsigset, SIGHUP);
+    sigaddset(&newsigset, SIGTERM);
+    sigaddset(&newsigset, SIGUSR1);
+    sigaddset(&newsigset, SIGUSR2);
     if(sigprocmask(SIG_BLOCK, &newsigset, NULL) < 0) {
         perror("could not block the signal");
     }
-    signal(SIGINT, ctrlC_handler); // redirect ctrl-C
+
+    // redirect signals
+    signal( SIGINT, signal_handler);    // redirect ctrl-C
+    signal(SIGQUIT, signal_handler);    // redirect ctrl-S 
+    signal(SIGCONT, signal_handler);    // redirect ctrl-Q
+    signal(SIGTSTP, signal_handler);    // redirect ctrl-Z
 
     bool x_flag = false;
     std::vector< std::string > file_args;
