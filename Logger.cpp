@@ -88,7 +88,7 @@ std::string repeatCommand(int n) {
             n = 1;
         }
 
-        return lines[n];
+        return lines[lines.size() - n - 1];
     }
 
     return "";
@@ -122,8 +122,10 @@ void commandHistory(int n) {
         }
 
         std::vector<std::string> lastLines(lines.end() - n, lines.end());
+        int n = 1;
         for(auto it = lastLines.begin(); it != lastLines.end(); ++it) {
-            std::cout << *it << "\n";
+            std::cout << n << " " << *it << std::endl;
+            n++;
         }
     }
 }

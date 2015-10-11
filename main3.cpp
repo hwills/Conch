@@ -327,7 +327,19 @@ void run_internal(const std::vector<std::string> &args) {
     }
     // repeats command with argument number from hisoty
     else if (args[0] == "repeat") {
-        std::string lastCommand = repeatCommand();
+        std::string lastCommand; 
+        if (args.size() > 1) {
+            try {
+                int convert = stoi(args[1]);
+                lastCommand = repeatCommand(convert);
+            }
+            catch (...) {
+                std::cout << "Repeat needs an integer argument or none." << std::endl;
+            }
+        }
+        else {
+            lastCommand = repeatCommand();
+        }
         if (debug_level >= 1) {
             std::cout << "DEBUG: Repeating command<" << lastCommand << ">" << std::endl;
         }
