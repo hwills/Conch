@@ -64,7 +64,7 @@ std::string printHelp(){
 }
 
 std::string functionHelp(std::string _function){
-    populateDocumentation();
+    populateDocumentationDetailed();
     std::unordered_map<std::string, std::string>::const_iterator help_result = functions_help.find(_function);
     if (help_result == functions_help.end()) {
         std::cout << _function << " is not a recognized internal command." << std::endl;

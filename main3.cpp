@@ -2,7 +2,7 @@
 //  main.cpp
 //  ShellFish
 //
-//  Created by Morgan Redding, Hunter Wills, Bryan Lamb, and Alex Tran on 10/10/2015.
+//  Created by Morgan Redding, Hunter Wills, Brian Lam, and Alex Tran on 10/10/2015.
 //
 
 #include <iostream>
@@ -23,20 +23,36 @@
 #include "Logger.h"
 
 
-//declaration of functions
+// Declaration of functions
 void execute_command(std::vector< std::vector<std::string> > commands);
 std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char symbol_to_split_by);
 
-std::string current_dir; // The directory our shell is currently working in. Used for dir and chdir
-extern char ** environ; // The environment variables set by our parent. Used to display the environ variables
+// The directory our shell is currently working in. Used for dir and chdir
+std::string current_dir; 
+
+// The environment variables set by our parent. Used to display the environ variables
+extern char ** environ; 
+
+// Global variable for debug level. 0 is for no debug messages, 1+ is debug messages
 int debug_level = 0; 
 
+// This vector holds all the foreground pieped child ids
 std::vector<int> child_ids;
 
+// Map of local variables. Lizzie wanted this comment
 std::unordered_map<std::string, std::string> local_variables;
 
+//TODO: MORGAN WANTS THS OT BE BACKGOURDN PROCNEKSAJ
 std::vector<int> background_commands;
 
+/*
+ * substitute_variable_values
+ * @returns std::string
+ *
+ * @params
+ *  const std::string& txt
+ *      - txt: a command
+ */
 std::string substitute_variable_values(const std::string& txt) {
     std::string rtn = "";
     for (int i = 0; i < txt.size(); i++) {
@@ -73,14 +89,32 @@ std::string substitute_variable_values(const std::string& txt) {
 }
 
 
-// copied shamelessly from http://stackoverflow.com/questions/7281894/how-do-i-chain-stdout-in-one-child-process-to-stdin-in-another-child-in-c/7282296#7282296
+/*
+ * set_read
+ * @returns void
+ *
+ * @params
+ *  int* lpipe
+ *      - is left pipe
+ */
 void set_read(int* lpipe) {
+    // Referenced from http://stackoverflow.com/questions/7281894/how-do-i-chain-stdout-in-one-child-process-to-stdin-in-another-child-in-c/7282296#7282296
     dup2(lpipe[0], STDIN_FILENO);
     close(lpipe[0]); // we have a copy already, so close it
     close(lpipe[1]); // not using this end
 }
 
-int list_files(std::string current_dir, std::string raw_path, std::vector<std::string> &result) {
+/* 
+ * list_files
+ * @returns int
+ *
+ * @params
+ *  std::string raw_path
+ *      -This is for scalibility so we can take a path relative to the absolute path
+ *  std::vector<std::string> &result
+ *      -A list of all the files in the directory specified
+ */
+int list_files(std::string raw_path, std::vector<std::string> &result) {
   /* Process the given path
    * This can be empty, sub directory, or full path 
    */
@@ -107,7 +141,6 @@ int list_files(std::string current_dir, std::string raw_path, std::vector<std::s
     if (dir)  {
         while ((ent = readdir(dir)) != NULL)  {
             result.push_back(ent->d_name);
-            // cout << ent->d_name << endl;
         }
         closedir(dir);
         return 0;
@@ -117,59 +150,86 @@ int list_files(std::string current_dir, std::string raw_path, std::vector<std::s
 }
 
 
+/*
+ * set_write
+ * @returns void
+ *
+ * @params
+ *  int* rpipe
+ *      - is right pipe
+ */
 void set_write(int* rpipe) {
+    // Referenced from http://stackoverflow.com/questions/7281894/how-do-i-chain-stdout-in-one-child-process-to-stdin-in-another-child-in-c/7282296#7282296
     dup2(rpipe[1], STDOUT_FILENO);
     close(rpipe[0]); // not using this end
     close(rpipe[1]); // we have a copy already, so close it
 }
 
+/*
+ * run_internal 
+ * @return void
+ *
+ * @params
+ *  const std::vector<std::string> &args
+ *      -These are the arguments being passed into the internal command
+ */
 void run_internal(const std::vector<std::string> &args) {
-    // TODO: SPIT OUT ERRORS
-    // TODO: make it so they can either accept an additinal argument OR input
-    //         e.g. so I can do either "set foo bar" or "set foo\nbar"
+    if (debug_level >= 1) {
+        std::cout << "DEBUG: running argument <" << args[0] << ">" << std::endl;
+    }
+    //This will set the local variable of the first argument to the value of the second argument
     if (args[0] == "set") {
         if (args.size() > 2) {
-            if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
+            if (args[1] != "$" && args[1] != "?" && args[1] != "!") { //make sure this is not one of out reserved vars
                 local_variables[args[1]] = args[2];
             }
         }
         else if (args.size() == 2) {
             std::string value;
             std::getline(std::cin, value);
-            local_variables[args[1]] = value;
-
+            if (args[1] != "$" && args[1] != "?" && args[1] != "!") { //make sure this is not one of out reserved vars
+                local_variables[args[1]] = value;
+            }
         }
         if (debug_level >= 1 && args.size() >= 2) {
             std::cout << "DEBUG: set argument <" << args[1] << ">" << std::endl;
         }
     }
+    //This remeoves a local variable from our set list
     else if (args[0] == "unset") {
         if (args.size() > 1) {
             if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
-            local_variables.erase(args[1]);
+                local_variables.erase(args[1]);
             }
         }
     }
+    //This will set the global environment variable of the first argument to the second argument
     else if (args[0] == "export") {
         if (args.size() > 2) {
-            setenv(&args[1][0], &args[2][0], getenv(&args[1][0]) == NULL ? 0 : 1);
+            if (args[1] != "$" && args[1] != "?" && args[1] != "!") { //make sure this is not one of our reserved vars
+                setenv(&args[1][0], &args[2][0], getenv(&args[1][0]) == NULL ? 0 : 1);
+            }
         }
     }
+    //This will unset the global variable 
     else if (args[0] == "unexport") {
-        if (args[1] != "$" && args[1] != "?" && args[1] != "!") {
+        if (args[1] != "$" && args[1] != "?" && args[1] != "!") {//make sure this is not one of our reserved vars
             unsetenv(&args[1][0]);
         }
     }
+    //Prints the first argument
     else if (args[0] == "echo") {
         if (args.size() > 1) {
             std::cout << args[1] << std::endl;
         }
     }
+    //Really the same thing as echo...
     else if (args[0] == "show") {
         if (args.size() > 1) {
             std::cout << args[1] << std::endl;
         }
     }
+    //displays user manuals
     else if (args[0] == "help") {
         if (args.size() == 1) {
             printHelp();
@@ -179,23 +239,32 @@ void run_internal(const std::vector<std::string> &args) {
         }
         //TODO: USE MORE FILTER and MAKE MANS
     }
+    //lists the contents of the current directory
     else if (args[0] == "dir") {
         std::vector<std::string> result;
-        list_files(current_dir, "", result);
+        list_files("", result);
         for (unsigned int i=0; i< result.size(); i++) {
-            if (result[i][0] != '.') {
+            if (result[i][0] != '.') {//ignore files beginning with a .
                 std::cout << result[i] + " ";
             }
         }
         std::cout << std::endl;
     }
+    //displays the history of the previous commands
     else if (args[0] == "history") {
-        int n = std::stoi(args[1]);
-        commandHistory(n);
+        try {
+            int n = std::stoi(args[1]);
+            commandHistory(n);
+        }
+        catch (...) {
+            commandHistory(100);
+        }
     }
+    //clears the termainal screen
     else if (args[0] == "clr") {
-        std::cout << "\033[2J\033[1;1H";
+        std::cout << "\033[2J\033[1;1H"; //this is a maic ancii escape code for clearing the screen and moving the cursor to the beginning of the screen
     }
+    //displays all currently set environment variables
     else if (args[0] == "environ") {
         char** env;
         for (env = environ; *env != 0; env++) {
@@ -203,8 +272,10 @@ void run_internal(const std::vector<std::string> &args) {
             std::cout << thisEnv << std::endl;    
         }
     }
+    //changes the current directory to the path specified
     else if (args[0] == "chdir") {
         if (args.size() == 2) {
+            //make sure we have access writes to the file
             if (!access((current_dir + "/" + args[1]).c_str(), F_OK)) {
                 std::vector<std::string> components = split_but_preserve_literal_strings(args[1], '/');
                 for (int i = 0; i < components.size(); i++) {
@@ -223,6 +294,7 @@ void run_internal(const std::vector<std::string> &args) {
             }
         }
     }
+    //waits for a process to finish
     else if (args[0] == "wait") {
         std::string value;
         int pid;    
@@ -249,15 +321,17 @@ void run_internal(const std::vector<std::string> &args) {
             waitpid(pid, NULL, 0);
         }
     }
+    //pauses unitl an "ENTER" key is pressed
     else if (args[0] == "pause") {
         std::cin.ignore();
     }
+    // repeats command with argument number from hisoty
     else if (args[0] == "repeat") {
         std::string lastCommand = repeatCommand();
         std::vector<std::string> _args;
         _args.push_back(lastCommand);
-        // execute_command(_args);
     }
+    //Sends signal to specified process
     else if (args[0] == "kill") {
             
         std::string value;
@@ -316,6 +390,7 @@ void run_internal(const std::vector<std::string> &args) {
         }
     }
 }
+
 
 char** args_conversion(std::vector< std::string > args) {
     if (args.size() == 1) {
@@ -551,8 +626,6 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
 // splits a string by a character, ignoring characters between quotes
 // splits a string by a character, ignoring characters between quotes
 std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char delimiter) {
-    
-    std::cout << txt << "\n";
     
     std::vector<std::string> rtn;
     
