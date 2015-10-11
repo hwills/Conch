@@ -21,3 +21,23 @@ The shell can be started with ./conch. Type 'help' to get
 help documentation when inside the shell. Help documentation text 
 was borrowed from the assignment text.
 
+************************
+Internal commands
+************************
+- show [w1] [w2]: display the word(s) followed by a newline
+- set [w1] [w2]: set the value of the local variable w1 to the value w2
+- unset [w]: unset a previously set local variable w
+- export [w1] [w2]: the global variable w1 with the value w2 to the environment
+- unexport [w]: unexport the global variable w from the environment
+- environment: display a listing of all environmental strings that are currently defined
+- chdir [w]: change the current working directory
+- exit [i]: exit the shell and return status i. If no value for i is given, exit with a status of 0. Kill off any currently running processes.
+- wait [i]: Wait for process with pid i to complete. If i is -1, wait for any children to complete.
+- clr: Clear the screen and display a new command line prompty at the top
+- dir: List the contents of the current directory
+- echo <comment>: Display <comment> on the display followed by a new line
+- help: Display the user manual using the more filter
+- pause: Pause the operation of the shell until the Enter key is pressed
+- history [n]: Display the last n executed commands.
+- repeat [n]: Print to the screen and execute the command in the history list that corresponds to the nth line. If n is not specified, then repeat should just execute the previous command.
+- kill [-n] pid: This command should send a signal to the specified process.  
