@@ -460,11 +460,6 @@ std::string find_file(const std::string & file_name) {
 
 void execute_command(std::vector< std::vector<std::string> > commands) {
 
-    if (commands[0].size() != 0 && commands.back()[0] == "help") {
-        commands[0][0] = "more";
-        commands[0].push_back("conchman");
-    }
-
     if(commands.size() == 0 || commands[0].size() == 0) {
         return;
     }
