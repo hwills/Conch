@@ -1,5 +1,13 @@
 #include "Logger.h"
 
+/* 
+ * logCommand 
+ * @returns void
+ *
+ * @params
+ *  std::string command
+ *  Command line that was just submitted - does not validate
+ */
 void logCommand(std::string command) {
     if(command != "repeat" && command != "exit") {
         std::ofstream history_file;
@@ -9,12 +17,31 @@ void logCommand(std::string command) {
     }
 }
 
+/* 
+ * getLastLine
+ *  Used by repeatCommand
+ * @returns std::string
+ *  The last line of a file
+ *
+ * @params
+ *  std::ifstream& in
+ *  Takes in ifstream to a file
+ */
 std::string getLastLine(std::ifstream& in) {
     std::string line;
     while(in >> std::ws && std::getline(in, line));
     return line;
 }
 
+/* 
+ * repeatCommand 
+ * @returns std::string
+ *  The most recently entered command
+ *
+ * @params
+ *  std::string command
+ *  Command line that was just submitted - does not validate
+ */
 std::string repeatCommand() {
     std::ifstream file("history");
 
@@ -23,10 +50,19 @@ std::string repeatCommand() {
         return line;
     }
     else {
-    	return "";
+        return "";
     }
 }
 
+/* 
+ * commandHistory
+ * Print out the n most recent commands
+ * @returns void
+ *
+ * @params
+ *  int n
+ *  The number of recent commands to repeat
+ */
 void commandHistory(int n) {
     std::ifstream file("history");
 
