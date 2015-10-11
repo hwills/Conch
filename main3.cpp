@@ -460,6 +460,15 @@ std::string find_file(const std::string & file_name) {
 
 void execute_command(std::vector< std::vector<std::string> > commands) {
 
+    if (commands[0].size() != 0 && commands.back()[0] == "help") {
+        commands[0][0] = "more";
+        commands[0].push_back("conchman");
+    }
+
+    if(commands.size() == 0 || commands[0].size() == 0) {
+        return;
+    }
+
     if (commands.back().back() == "!") {
         // background command
         int pid = fork();
@@ -797,6 +806,10 @@ int main(int argc, const char * argv[]) {
         std::vector<std::string> individual_commands = split_but_preserve_literal_strings(command_after_var_substitution, '|');
         
         std::vector<std::vector<std::string> > args(individual_commands.size());
+
+        if(args.size() == 0) {
+            continue;
+        }
         
         for (unsigned int i = 0; i < individual_commands.size(); i++) {
             args[i] = split_but_preserve_literal_strings(individual_commands[i], ' ');
