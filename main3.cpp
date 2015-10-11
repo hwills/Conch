@@ -479,7 +479,7 @@ bool is_internal_command(std::string command) {
  */
 void execute_command(std::vector< std::vector<std::string> > commands) {
 
-    if(commands.size() == 0 || commands[0].size() == 0) {
+    if (commands.size() == 0 || commands[0].size() == 0) {
         return;
     }
 
@@ -504,37 +504,39 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
         }
     }
 
-    if (commands.back()[commands.back().size() - 2] == ">") {
-        // redirect output to a file
-        std::string file_name = commands.back().back();
-        commands.back().pop_back();
-        commands.back().pop_back();
-        FILE * stream;
-        int stdout_dupfd = dup(STDOUT_FILENO);
-        stream = fopen(&file_name[0], "w");
-        dup2(fileno(stream), STDOUT_FILENO);
-        execute_command(commands);
-        fflush(stdout);
-        fclose(stream);
-        dup2(stdout_dupfd, STDOUT_FILENO);
-        close(stdout_dupfd);
-        return;
-    }
-    else if (commands.back()[commands.back().size() - 2] == "<") {
-        // redirect input to a file
-        std::string file_name = commands.back().back();
-        commands.back().pop_back();
-        commands.back().pop_back();
-        FILE * stream;
-        int stdin_dupfd = dup(STDIN_FILENO);
-        stream = fopen(&file_name[0], "r");
-        dup2(fileno(stream), STDIN_FILENO);
-        execute_command(commands);
-        fflush(stdin);
-        fclose(stream);
-        dup2(stdin_dupfd, STDIN_FILENO);
-        close(stdin_dupfd);
-        return;
+    if (commands.back().size() >= 2) {
+        if (commands.back()[commands.back().size() - 2] == ">") {
+            // redirect output to a file
+            std::string file_name = commands.back().back();
+            commands.back().pop_back();
+            commands.back().pop_back();
+            FILE * stream;
+            int stdout_dupfd = dup(STDOUT_FILENO);
+            stream = fopen(&file_name[0], "w");
+            dup2(fileno(stream), STDOUT_FILENO);
+            execute_command(commands);
+            fflush(stdout);
+            fclose(stream);
+            dup2(stdout_dupfd, STDOUT_FILENO);
+            close(stdout_dupfd);
+            return;
+        }
+        else if (commands.back()[commands.back().size() - 2] == "<") {
+            // redirect input to a file
+            std::string file_name = commands.back().back();
+            commands.back().pop_back();
+            commands.back().pop_back();
+            FILE * stream;
+            int stdin_dupfd = dup(STDIN_FILENO);
+            stream = fopen(&file_name[0], "r");
+            dup2(fileno(stream), STDIN_FILENO);
+            execute_command(commands);
+            fflush(stdin);
+            fclose(stream);
+            dup2(stdin_dupfd, STDIN_FILENO);
+            close(stdin_dupfd);
+            return;
+        }
     }
 
 
