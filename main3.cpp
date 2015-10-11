@@ -391,7 +391,14 @@ void run_internal(const std::vector<std::string> &args) {
     }
 }
 
-
+/*
+ * args_conversion
+ * @returns char**
+ *
+ * @params
+ *  std::vector< std::string > args
+ *      - arguments to be converted to argv for an exec command
+ */
 char** args_conversion(std::vector< std::string > args) {
     if (args.size() == 1) {
         return nullptr;
@@ -409,6 +416,14 @@ char** args_conversion(std::vector< std::string > args) {
     return formatted_args;
 }
 
+/*
+ * is_internal_command
+ * @returns std::string
+ *
+ * @params
+ *  std::string command
+ *      - a command that is to be check to see if this is one of our shell's internal commands
+ */
 bool is_internal_command(std::string command) {
     if (command == "clr") {
         return true;
@@ -446,19 +461,19 @@ bool is_internal_command(std::string command) {
     return false;
 }
 
-std::string find_file(const std::string & file_name) {
-    std::string path_var = "PATH";
-    std::string path = getenv(&path_var[0]);
-    std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
-    for (unsigned int j = 0; j < path_components.size(); ++j) {
-        if (!access((path_components[j] + "/" + file_name).c_str(), X_OK)) {
-            return path_components[j] + "/" + file_name;
-        }
-    }
-    return "";
-}
-
+/*
+ * execute_command
+ * @returns void
+ *
+ * @params
+ *  std::vector< std::vector<std::string> > commands
+ *      - list of piped commands' " " delimited values
+ */
 void execute_command(std::vector< std::vector<std::string> > commands) {
+
+    if(commands.size() == 0 || commands[0].size() == 0) {
+        return;
+    }
 
     if (commands.back().back() == "!") {
         // background command
@@ -624,7 +639,6 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
 }
 
 // splits a string by a character, ignoring characters between quotes
-// splits a string by a character, ignoring characters between quotes
 std::vector<std::string> split_but_preserve_literal_strings(const std::string& txt, const char delimiter) {
     
     std::vector<std::string> rtn;
@@ -669,6 +683,7 @@ std::vector<std::string> split_but_preserve_literal_strings(const std::string& t
     return rtn;
 }
 
+//hadles passing signals to children
 void signal_handler(int sig) {
     for (size_t i = 0; i < child_ids.size(); i++) {
         kill(child_ids[i], sig);
@@ -797,6 +812,10 @@ int main(int argc, const char * argv[]) {
         std::vector<std::string> individual_commands = split_but_preserve_literal_strings(command_after_var_substitution, '|');
         
         std::vector<std::vector<std::string> > args(individual_commands.size());
+
+        if(args.size() == 0) {
+            continue;
+        }
         
         for (unsigned int i = 0; i < individual_commands.size(); i++) {
             args[i] = split_but_preserve_literal_strings(individual_commands[i], ' ');
