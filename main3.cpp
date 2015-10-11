@@ -6,6 +6,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
@@ -26,6 +27,7 @@ std::vector<std::string> split_but_preserve_literal_strings(const std::string& t
 
 std::string current_dir;
 extern char ** environ;
+int debug_level = 0;
 
 std::unordered_map<std::string, std::string> local_variables;
 
@@ -153,11 +155,14 @@ void run_internal(const std::vector<std::string> &args) {
                 local_variables[args[1]] = args[2];
             }
         }
-        else if(args.size() == 1) {
+        else if(args.size() == 2) {
             std::string value;
             std::getline(std::cin, value);
             local_variables[args[1]] = value;
 
+        }
+        if (debug_level >= 1 && args.size() >= 2) {
+            std::cout << "DEBUG: set argument <" << args[1] << ">" << std::endl;
         }
     }
     else if(args[0] == "unset") {
@@ -241,8 +246,30 @@ void run_internal(const std::vector<std::string> &args) {
         }
     }
     else if(args[0] == "wait") {
-        std::cout << "WAIT NOT IMPLEMENTED YET" << std::endl;
-            //TODO: FINISH THIS
+        std::string value;
+        int pid;    
+
+        if(args.size() < 2) {
+            std::getline(std::cin, value);
+        }
+        else {
+            value = args[1];
+        }
+            
+        try {
+            pid = stoi(value);
+        }
+        catch(...) {
+            std::cout << "process id not an integer" << std::endl;
+            return;
+        }
+        
+        if (pid == -1) {
+            wait(NULL);
+        }
+        else {
+            waitpid(pid, NULL, 0);
+        }
     }
     else if(args[0] == "pause") {
         std::cin.ignore();
@@ -254,36 +281,60 @@ void run_internal(const std::vector<std::string> &args) {
         // execute_command(_args);
     }
     else if(args[0] == "kill") {
-
-        if(args.size() > 2 && args[1][0] == '-') {
             
+        std::string value;
+        int pid;    
+
+        if(args.size() < 2) {
+            std::getline(std::cin, value);
         }
         else {
-            std::string value;
+            value = args[1];
+        }
 
-            if(args.size() < 2) {
-                std::getline(std::cin, value);
-            }
-            else {
-                value = args[1];
-            }
+        if(value[0] == '-') {
+            
+            int sig_num;
 
             try {
-                int pid = stoi(value);
+                sig_num = stoi(value.substr(1));
+            }
+            catch (...) {
+                std::cout << "signal to be sent must be an integer" << std::endl;
+            }
+
+            std::string value2;
+
+            if(args.size() < 3) {
+                std::getline(std::cin, value2);
+            }
+            else {
+                value2 = args[2];
+            }
+            
+            try {
+                pid = stoi(value2);
+            }
+            catch(...) {
+                std::cout << "process id not an integer" << std::endl;
+                return;
+            }
+
+            kill(pid, sig_num);
+
+        }
+        else {
+
+            try {
+                pid = stoi(value);
             }
             catch(int e) {
                 std::cout << "process id not an integer" << std::endl;
                 return;
             }
 
-            for(int i = 0; i < background_commands.size(); i++) {
-                if(background_commands[i] == pid) {
-                    kill(pid, SIGINT);
-                    return;
-                }
-            }
+            kill(pid, SIGTERM);
 
-            std::cout << "cannot kill a process with that id" << std::endl;
         }
     }
 }
@@ -342,6 +393,18 @@ bool is_internal_command(std::string command) {
     return false;
 }
 
+std::string find_file(const std::string & file_name) {
+    std::string path_var = "PATH";
+    std::string path = getenv(&path_var[0]);
+    std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
+    for(int j = 0; j < path_components.size(); ++j) {
+        if(!access((path_components[j] + "/" + file_name).c_str(), X_OK)) {
+            return path_components[j] + "/" + file_name;
+        }
+    }
+    return "";
+}
+
 void execute_command(std::vector< std::vector<std::string> > commands) {
 
     if(commands.back().back() == "!") {
@@ -360,9 +423,44 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
         }
         else {
             background_commands.push_back(pid);
+            local_variables["!"] = std::to_string(pid);
             return;
         }
     }
+
+    if(commands.back()[commands.back().size() - 2] == ">") {
+        // redirect output to a file
+        std::string file_name = commands.back().back();
+        commands.back().pop_back();
+        commands.back().pop_back();
+        FILE * stream;
+        int stdout_dupfd = dup(STDOUT_FILENO);
+        stream = fopen(&file_name[0], "w");
+        dup2(fileno(stream), STDOUT_FILENO);
+        execute_command(commands);
+        fflush(stdout);
+        fclose(stream);
+        dup2(stdout_dupfd, STDOUT_FILENO);
+        close(stdout_dupfd);
+        return;
+    }
+    else if(commands.back()[commands.back().size() - 2] == "<") {
+        // redirect input to a file
+        std::string file_name = commands.back().back();
+        commands.back().pop_back();
+        commands.back().pop_back();
+        FILE * stream;
+        int stdin_dupfd = dup(STDIN_FILENO);
+        stream = fopen(&file_name[0], "r");
+        dup2(fileno(stream), STDIN_FILENO);
+        execute_command(commands);
+        fflush(stdin);
+        fclose(stream);
+        dup2(stdin_dupfd, STDIN_FILENO);
+        close(stdin_dupfd);
+        return;
+    }
+
 
     if(commands.size() == 1 && is_internal_command(commands[0][0])) {
         if(commands[0][0] == "exit") {
@@ -381,7 +479,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
         run_internal(commands[0]);// run internal command
         return;
     }
-                
+
     //make sure we have access to run all of the commands
     for(int i = 0; i < commands.size(); ++i) {
         if(is_internal_command(commands[i][0])) {
@@ -418,6 +516,15 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
     int* last_pipe = nullptr;
 
     for(unsigned int i = 0; i < commands.size(); i++) {
+        if (debug_level >= 1) {
+            std::cout << "DEBUG: Running external command<" << commands[i][0] << ">" << std::endl;
+        }
+        if (commands[i][0] == "" || commands[i][0] == " ") {
+            if (debug_level >= 1) {
+                std::cout << "DEBUG: You attempet to run a blank command<" << commands[i][0] << ">" << std::endl;
+            }
+            continue;
+        }
         child_ids[i] = fork();
         if(child_ids[i] == 0) {
                 std::string shell = "parent";
@@ -456,7 +563,9 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
     }
 
     for(unsigned int i = 0; i < commands.size(); i++) {
-        waitpid(child_ids[i], NULL, 0);
+        int status = -1;
+        waitpid(child_ids[i], &status, 0);
+        local_variables["?"] = std::to_string(WEXITSTATUS(status));//ONLY THE 8 LEAST SIGNIFICANT BITS STORE THE EXIT STATUS
     }
 }
 
@@ -527,44 +636,41 @@ int main(int argc, const char * argv[]) {
     signal(SIGINT, ctrlC_handler); // redirect ctrl-C
 
     bool x_flag = false;
-    int debug_level = 0;
+    std::vector< std::string > file_args;
 
-    if(argc > 1) {
-        if(argv[1][0] == '-') {
-            if(argv[1][1] == 'x') {
-                x_flag = true;
+    int i = 1;
+    while(i < argc) {
+        if(std::string(argv[i]) == "-x") {
+            x_flag = true;
+            i++;
+        }
+        else if(std::string(argv[i]) == "-d") {
+            try {
+                debug_level = atoi(argv[i + 1]);
             }
-            else if(argv[1][1] == 'd') {
-                debug_level = 1;
-                if(argc > 2) {
-                    try {
-                        debug_level = atoi(argv[2]);
-                    }
-                    catch(int e) {
-                        std::cout << "debug level not an integer" << std::endl;
-                        return 0;
-                    }
-                }
+            catch(...) {
+                std::cout << "invalid debug level" << std::endl;
+                return -2;
+            }
+            i += 2;
+        }
+        else if(std::string(argv[i]) == "-f") {
+            i++;
+            while(i < argc) {
+                file_args.push_back(argv[i]);
+                i++;
             }
         }
         else {
-            std::cout << "argument error" << std::endl;
-            return 0;
+            std::cout << "invalid arguments" << std::endl;
+            return -3;
         }
     }
-    if(argc > 2) {
-        if(argv[2][0] == '-' && argv[2][1] == 'd') {
-            debug_level = 1;
-            if(argc > 3) {
-                try {
-                    debug_level = atoi(argv[3]);
-                }
-                catch(int e) {
-                    std::cout << "debug level not an integer" << std::endl;
-                    return 0;
-                }
-            }
-        }
+
+    if (debug_level >= 1) {
+        std::cout << "DEBUG: x flag is <" << x_flag << ">" << std::endl;
+        std::cout << "DEBUG: d flag is <" << debug_level << ">" << std::endl;
+        std::cout << "DEBUG: number of file args is <" << file_args.size() << ">" << std::endl;
     }
 
     char buf[256];
@@ -572,7 +678,6 @@ int main(int argc, const char * argv[]) {
     std::string shell = "shell";
     std::string shellpath = current_dir + "/sish";
     setenv(&shell[0], &shellpath[0], getenv(&shell[0]) == NULL ? 0 : 1);
-    //TODO: BACKGROUND COMMANDS
     local_variables["$"] = std::to_string(getpid());
     local_variables["?"] = "\"no foreground commands run yet\"";
     local_variables["!"] = "\"no background commands run yet\"";
@@ -581,6 +686,37 @@ int main(int argc, const char * argv[]) {
     //TODO: TERMINAL GENERATED SIGNALS
     //TODO: DEBUG MODE, EXECUTE FILE MODE, -X mode
     //TODO: MAN PAGE FOR OUR SHELL
+
+    if (file_args.size() >=1) 
+    {
+
+        for(int i = 1; i < file_args.size(); ++i) {
+            local_variables[std::to_string(i)] = file_args[i];
+        }
+
+        std::ifstream file;
+        file.open(file_args[0]);
+        std::string line;
+        while (std::getline(file, line)) {
+            std::string command_after_var_substitution = substitute_variable_values(line);
+            logCommand(line);
+            
+            if (x_flag) {
+                std::cout << command_after_var_substitution << std::endl;
+            }
+
+            std::vector<std::string> individual_commands = split_but_preserve_literal_strings(command_after_var_substitution, '|');
+            
+            std::vector<std::vector<std::string> > args(individual_commands.size());
+            
+            for(unsigned int i = 0; i < individual_commands.size(); i++) {
+                args[i] = split_but_preserve_literal_strings(individual_commands[i], ' ');
+            }
+            execute_command(args);
+            
+        }
+        return 0;
+    }
 
     while(true) {
     
@@ -592,12 +728,20 @@ int main(int argc, const char * argv[]) {
         std::string command_after_var_substitution = substitute_variable_values(command);
         logCommand(command);
         
+        if (x_flag) {
+            std::cout << command_after_var_substitution << std::endl;
+        }
+
         std::vector<std::string> individual_commands = split_but_preserve_literal_strings(command_after_var_substitution, '|');
         
         std::vector<std::vector<std::string> > args(individual_commands.size());
-
+        
         for(unsigned int i = 0; i < individual_commands.size(); i++) {
             args[i] = split_but_preserve_literal_strings(individual_commands[i], ' ');
+        }
+
+        if (debug_level >= 1) {
+            std::cout << "DEBUG: Number of args to first pipe <" << args[0].size() << ">" << std::endl;
         }
         execute_command(args);
     }

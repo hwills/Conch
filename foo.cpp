@@ -1,10 +1,11 @@
 #include <iostream>
+#include <unistd.h>
 
 int main(int argc, const char * argv[]) {
 
 	std::cout << "a" << std::endl;
-	sleep(300);
+	sleep(1);
 	std::cout << "b" << std::endl;
 
-    return 0;
+    return 12;
 }
