@@ -47,8 +47,7 @@ std::string getLastLine(std::ifstream& in) {
  *  The most recently entered command
  *
  * @params
- *  std::string command
- *  Command line that was just submitted - does not validate
+ *  none
  */
 std::string repeatCommand() {
     std::ifstream file("history");
@@ -60,6 +59,39 @@ std::string repeatCommand() {
     else {
         return "";
     }
+}
+
+/* 
+ * repeatCommand 
+ * @returns std::string
+ *  The nth most recent command
+ *
+ * @params
+ *  std::string command
+ *  Command line that was just submitted - does not validate
+ */
+std::string repeatCommand(int n) {
+    std::ifstream file("history");
+
+    if(file) {
+        std::vector<std::string> lines;
+        std::string line;
+        while(file >> std::ws && std::getline(file, line)) {
+            lines.push_back(line);
+        };
+
+        if(n >= lines.size()) {
+            n = lines.size() - 1;
+        }
+
+        if(n < 0) {
+            n = 1;
+        }
+
+        return lines[n];
+    }
+
+    return "";
 }
 
 /* 

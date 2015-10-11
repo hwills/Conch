@@ -15,5 +15,6 @@
 
 void logCommand(std::string command);
 std::string repeatCommand();
+std::string repeatCommand(int n);
 void commandHistory(int n);
 #endif
