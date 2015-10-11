@@ -1,0 +1,23 @@
+SHELLFISH
+
+************************
+Written for the Operating Systems Course (CSE 422) at 
+Washington University in St. Louis
+************************
+
+************************
+Authors: Hunter Wills, Morgan Redding, Brian Lam, and Alex Tran.
+************************
+
+************************
+Building the shell
+************************
+The project can be built with 'make'.
+
+************************
+Using the shell
+************************
+The shell can be started with ./conch. Type 'help' to get 
+help documentation when inside the shell. Help documentation text 
+was borrowed from the assignment text.
+

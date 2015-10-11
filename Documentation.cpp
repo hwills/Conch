@@ -1,7 +1,22 @@
+//
+//  Documentation.cpp
+//  Source code for help functions
+//
+//  Authors: Morgan Redding, Hunter Wills, Brian Lam, 
+//  and Alex Tran on 10/10/2015.
+//
+
 #include "Documentation.h"
 
 std::unordered_map<std::string, std::string> functions_help;
 
+/*
+ * populateDocumentation
+ * Populate functions_help with basic details of functions.
+ * @returns void
+ *
+ * @params none
+ */
 void populateDocumentation() {
     functions_help["show"] = "show [w1] [w2]: display the word(s) followed by a newline";
     functions_help["set"] = "set [w1] [w2]: set the value of the local variable w1 to the value w2";
@@ -22,6 +37,13 @@ void populateDocumentation() {
     functions_help["kill"] = "kill [-n] pid: This command should send a signal to the specified process.";      
 }
 
+/*
+ * populateDocumentationDetailed
+ * Populate functions_help with man-page style details of functions.
+ * @returns void
+ *
+ * @params none
+ */
 void populateDocumentationDetailed() {
     functions_help["show"] = "SYNPOSIS\n\t show [w1] [w2]: display the word(s) followed by a newline\n\nDESCRIPTION\n\t[w1] [w2] ... \t are the words to be displayed on the screen";
     functions_help["set"] = "SYNPOSIS\n\t set [w1] [w2]: set the value of the local variable w1 to the value w2\n\nDESCRIPTION\n\t[w1] is the name of the variable to be set. \n\t[w2] is the value of [w1]";
@@ -42,7 +64,14 @@ void populateDocumentationDetailed() {
     functions_help["kill"] = "SYNPOSIS\n\t kill [-n] pid: This command should send a signal to the specified process.\n\nDESCRIPTION\n\t[-n] represents the signal to send. For example, -9.";
 }
 
-
+/*
+ * printHelp
+ * Print description of shell and basic descriptions of authors
+ * @returns std::string
+ *      returns the help string
+ *
+ * @params none
+ */
 std::string printHelp(){
     populateDocumentation();
     std::string help_string = "************************\n";
@@ -63,6 +92,15 @@ std::string printHelp(){
     return "";
 }
 
+/*
+ * functionHelp
+ * Provides help about a specific function
+ * @returns std::string
+ *  Detailed string description of a function
+ *
+ * @params std::string _function
+ *   Name of the function to print help about
+ */
 std::string functionHelp(std::string _function){
     populateDocumentationDetailed();
     std::unordered_map<std::string, std::string>::const_iterator help_result = functions_help.find(_function);

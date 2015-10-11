@@ -55,7 +55,7 @@ std::vector<int> background_commands;
  */
 std::string substitute_variable_values(const std::string& txt) {
     std::string rtn = "";
-    for (int i = 0; i < txt.size(); i++) {
+    for (unsigned int i = 0; i < txt.size(); i++) {
         if (txt[i] == '#') {
             break;
         }
@@ -278,7 +278,7 @@ void run_internal(const std::vector<std::string> &args) {
             //make sure we have access writes to the file
             if (!access((current_dir + "/" + args[1]).c_str(), F_OK)) {
                 std::vector<std::string> components = split_but_preserve_literal_strings(args[1], '/');
-                for (int i = 0; i < components.size(); i++) {
+                for (unsigned int i = 0; i < components.size(); i++) {
                     if (components[i] == "..") {
                         int found_index = current_dir.find_last_of('/');
                         current_dir = current_dir.substr(0, found_index);
@@ -450,7 +450,7 @@ std::string find_file(const std::string & file_name) {
     std::string path_var = "PATH";
     std::string path = getenv(&path_var[0]);
     std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
-    for (int j = 0; j < path_components.size(); ++j) {
+    for (unsigned int j = 0; j < path_components.size(); ++j) {
         if (!access((path_components[j] + "/" + file_name).c_str(), X_OK)) {
             return path_components[j] + "/" + file_name;
         }
@@ -534,7 +534,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
     }
 
     //make sure we have access to run all of the commands
-    for (int i = 0; i < commands.size(); ++i) {
+    for (unsigned int i = 0; i < commands.size(); ++i) {
         if (is_internal_command(commands[i][0])) {
             continue;
         }
@@ -546,7 +546,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
             std::string path = getenv(&path_var[0]);
             std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
             bool success = false;
-            for (int j = 0; j < path_components.size(); ++j) {
+            for (unsigned int j = 0; j < path_components.size(); ++j) {
                 if (!access((path_components[j] + "/" + commands[i][0]).c_str(), X_OK)) {
                     success = true;
                     break;
@@ -603,7 +603,7 @@ void execute_command(std::vector< std::vector<std::string> > commands) {
                     std::string path_var = "PATH";
                     std::string path = getenv(&path_var[0]);
                     std::vector<std::string> path_components = split_but_preserve_literal_strings(path, ':');
-                    for (int j = 0; j < path_components.size(); ++j) {
+                    for (unsigned int j = 0; j < path_components.size(); ++j) {
                         if (!access((path_components[j] + "/" + commands[i][0]).c_str(), X_OK)) {
                             command = path_components[j] + "/" + commands[i][0];
                             break;
@@ -752,7 +752,7 @@ int main(int argc, const char * argv[]) {
     if (file_args.size() >=1) 
     {
 
-        for (int i = 1; i < file_args.size(); ++i) {
+        for (unsigned int i = 1; i < file_args.size(); ++i) {
             local_variables[std::to_string(i)] = file_args[i];
         }
 
